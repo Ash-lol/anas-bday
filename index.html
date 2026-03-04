@@ -627,12 +627,14 @@ window.showBirthdayBanner = function() {
       banner.style.display = 'none';
       stopFireworks(fwIv);
       document.removeEventListener('click', dismiss);
+      document.removeEventListener('touchend', dismiss);
       document.removeEventListener('keydown', dismiss);
       resolve();
     }
     // Let the first frame render before listening
     setTimeout(() => {
       document.addEventListener('click', dismiss, { once: true });
+      document.addEventListener('touchend', dismiss, { once: true });
       document.addEventListener('keydown', dismiss, { once: true });
     }, 600);
   });
