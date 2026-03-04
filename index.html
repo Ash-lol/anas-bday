@@ -1,0 +1,2712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Happy Birthday Anastasia! 🎂 | Anas-24</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { overflow: hidden; background: #0d0d1a; font-family: Arial, sans-serif; }
+    canvas { display: block; }
+
+    /* ── Player Selection Screen ───────────────────────── */
+    #player-select {
+      position: fixed; inset: 0; z-index: 200;
+      background: linear-gradient(135deg, #1a0a2e 0%, #16213e 50%, #0f3460 100%);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      color: white;
+    }
+    #player-select h1 {
+      font-size: 2.2rem; margin-bottom: 8px; letter-spacing: 3px;
+      background: linear-gradient(90deg, #f9a8d4, #f472b6, #ec4899);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    #player-select .sub { color: #889; font-size: 13px; margin-bottom: 40px; letter-spacing: 1px; }
+    #player-select .prompt { color: #aab; font-size: 15px; margin-bottom: 22px; }
+    .player-btns { display: flex; gap: 18px; }
+    .player-btn {
+      padding: 14px 36px; font-size: 16px; border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 12px; background: rgba(255,255,255,0.06); color: #fff;
+      cursor: pointer; transition: all 0.25s; letter-spacing: 1px;
+      backdrop-filter: blur(6px);
+    }
+    .player-btn:hover { background: rgba(255,255,255,0.15); border-color: #f472b6; transform: scale(1.05); }
+    #pra-pw-wrap {
+      margin-top: 18px; display: none; flex-direction: column; align-items: center; gap: 10px;
+    }
+    #pra-pw-wrap input {
+      padding: 10px 18px; font-size: 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.08); color: white; width: 240px; text-align: center;
+      outline: none;
+    }
+    #pra-pw-wrap input:focus { border-color: #a78bfa; }
+    #pra-pw-err { color: #f87171; font-size: 12px; display: none; }
+    #pra-pw-go {
+      padding: 8px 28px; border-radius: 8px; border: 1px solid #a78bfa;
+      background: rgba(167,139,250,0.15); color: #e0d4fc; cursor: pointer; font-size: 14px;
+    }
+    #pra-pw-go:hover { background: rgba(167,139,250,0.3); }
+
+    /* ── Loading Screen ────────────────────────────────── */
+    #loading {
+      position: fixed; inset: 0;
+      background: linear-gradient(135deg, #0d0d1a 0%, #1a1a2e 50%, #0f3460 100%);
+      display: none; flex-direction: column;
+      align-items: center; justify-content: center;
+      color: white; z-index: 100;
+      transition: opacity 0.6s ease;
+    }
+    #loading h1 {
+      font-size: 3rem; margin-bottom: 6px;
+      letter-spacing: 4px;
+      background: linear-gradient(90deg, #f9a8d4, #f472b6, #ec4899);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    #loading .subtitle { color: #667; margin-bottom: 36px; letter-spacing: 2px; font-size: 13px; }
+    #loading-bar-bg { width: 320px; height: 4px; background: #222; border-radius: 2px; }
+    #loading-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #f9a8d4, #f472b6); border-radius: 2px; transition: width 0.25s; }
+    #loading-text { margin-top: 14px; font-size: 12px; color: #555; }
+
+    /* ── Birthday Banner ───────────────────────────────── */
+    #bday-banner {
+      position: fixed; inset: 0; z-index: 150;
+      display: none; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: rgba(5,0,15,0.75);
+      backdrop-filter: blur(6px);
+      pointer-events: none;
+      animation: bannerIn 0.8s ease-out;
+    }
+    @keyframes bannerIn { from { opacity:0; transform:scale(0.85); } to { opacity:1; transform:scale(1); } }
+    #bday-banner h1 {
+      font-size: clamp(2rem, 6vw, 3.6rem);
+      text-align: center; line-height: 1.35;
+      background: linear-gradient(90deg, #f9a8d4, #fbcfe8, #f472b6, #fda4af, #f9a8d4);
+      background-size: 200% 100%;
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+      animation: bdayShimmer 3s linear infinite;
+      text-shadow: 0 0 40px rgba(244,114,182,0.4);
+      margin-bottom: 0;
+    }
+    @keyframes bdayShimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+    #bday-banner .emoji-row {
+      font-size: clamp(1.8rem, 4vw, 3rem); margin-top: 12px;
+      animation: emojiBounce 1s ease-in-out infinite alternate;
+    }
+    @keyframes emojiBounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+    #bday-banner .dismiss {
+      margin-top: 36px; color: rgba(255,255,255,0.4); font-size: 12px;
+      animation: fadePulse 2s ease-in-out infinite;
+      pointer-events: auto; cursor: pointer;
+    }
+    @keyframes fadePulse { 0%,100%{opacity:.4} 50%{opacity:.8} }
+
+    /* ── Fireworks canvas ──────────────────────────────── */
+    #fireworks-canvas {
+      position: fixed; inset: 0; z-index: 149;
+      pointer-events: none; display: none;
+    }
+
+    /* ── Controls ──────────────────────────────────────── */
+    #controls {
+      position: fixed; bottom: 20px; left: 20px;
+      color: #ddd; background: rgba(0,0,0,0.55);
+      padding: 14px 18px; border-radius: 12px;
+      font-size: 12px; line-height: 2.1;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.08);
+      display: none;
+    }
+    #controls h3 { margin-bottom: 6px; font-size: 13px; color: #f472b6; letter-spacing: 1px; }
+    .key {
+      display: inline-block;
+      background: rgba(255,255,255,0.12);
+      padding: 0px 7px; border-radius: 4px;
+      font-family: monospace; font-size: 11px;
+      border: 1px solid rgba(255,255,255,0.18);
+      color: #fff;
+    }
+
+    /* ── HUD ───────────────────────────────────────────── */
+    #hud {
+      position: fixed; top: 18px; right: 64px;
+      color: white; background: rgba(0,0,0,0.5);
+      padding: 10px 16px; border-radius: 10px;
+      font-size: 13px; min-width: 120px;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.08);
+      display: none; text-align: center;
+    }
+    #anim-state { font-weight: bold; color: #f9a8d4; font-size: 14px; }
+
+    #hint {
+      position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
+      color: #aaa; font-size: 12px; background: rgba(0,0,0,0.4);
+      padding: 6px 14px; border-radius: 20px;
+      backdrop-filter: blur(6px);
+      display: none; pointer-events: none;
+    }
+
+    /* ── NPC Interaction Bubble (Genshin-style) ────────── */
+    #npc-bubble {
+      position: fixed; bottom: 130px; left: 50%; transform: translateX(-50%);
+      display: none; align-items: center; gap: 8px;
+      background: rgba(10,10,20,0.82); border: 1.5px solid rgba(200,180,120,0.4);
+      padding: 8px 16px; border-radius: 22px;
+      backdrop-filter: blur(8px);
+      cursor: pointer; z-index: 40;
+      animation: tpulse 1.5s ease-in-out infinite;
+      transition: transform 0.15s;
+    }
+    #npc-bubble:hover { transform: translateX(-50%) scale(1.06); }
+    #npc-bubble .bubble-icon { font-size: 16px; }
+    #npc-bubble .bubble-name { color: #f0c860; font-size: 13px; font-weight: 600; letter-spacing: 0.5px; }
+    @keyframes tpulse { 0%,100%{opacity:.85} 50%{opacity:1} }
+
+    /* ── Dialogue UI ───────────────────────────────────── */
+    #dialogue-box {
+      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+      width: min(640px, 92vw); background: rgba(14,10,28,0.94);
+      border: 2px solid rgba(249,168,212,0.35); border-radius: 22px;
+      padding: 20px 24px 16px; color: #f0eaff; font-size: 15px;
+      line-height: 1.7; backdrop-filter: blur(14px);
+      display: none; z-index: 50;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04) inset;
+    }
+    #dlg-close-btn {
+      position: absolute; top: 12px; right: 14px;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+      color: #888; width: 30px; height: 30px;
+      font-size: 17px; cursor: pointer; line-height: 28px; text-align: center;
+      transition: all 0.15s; border-radius: 50%;
+    }
+    #dlg-close-btn:hover { color: #f87171; background: rgba(248,113,113,0.15); border-color: rgba(248,113,113,0.3); }
+    #dialogue-box .speaker {
+      font-weight: 800; color: #f0c860; font-size: 17px;
+      margin-bottom: 8px; letter-spacing: 1.2px;
+      text-shadow: 0 0 12px rgba(240,200,96,0.25);
+    }
+    #dialogue-box .line {
+      min-height: 42px; font-size: 15px; color: #e8e0f8;
+      letter-spacing: 0.2px;
+    }
+    #dialogue-box .dlg-hint {
+      margin-top: 10px; font-size: 11px; color: #666;
+      text-align: right;
+    }
+
+    /* ── Dialogue Choice Buttons ───────────────────────── */
+    #dlg-choices {
+      display: none; margin-top: 12px;
+    }
+    #dlg-choices .choice-btn {
+      display: block; width: 100%; text-align: left;
+      padding: 10px 16px; margin-bottom: 6px;
+      background: rgba(255,255,255,0.06); border: 1.5px solid rgba(200,180,120,0.3);
+      border-radius: 10px; color: #ffe; font-size: 14px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    #dlg-choices .choice-btn:hover {
+      background: rgba(244,114,182,0.15); border-color: #f472b6; transform: translateX(4px);
+    }
+
+    /* ── Password input in dialogue ────────────────────── */
+    #dlg-password-wrap {
+      display: none; margin-top: 12px;
+    }
+    #dlg-password-wrap input {
+      width: 100%; padding: 9px 14px; font-size: 14px;
+      border-radius: 8px; border: 1.5px solid rgba(200,180,120,0.3);
+      background: rgba(255,255,255,0.06); color: #ffe; outline: none;
+    }
+    #dlg-password-wrap input:focus { border-color: #f472b6; }
+    #dlg-pw-err { color: #f87171; font-size: 12px; margin-top: 6px; display: none; }
+    #dlg-pw-submit {
+      margin-top: 8px; padding: 7px 20px; border-radius: 8px;
+      border: 1.5px solid rgba(200,180,120,0.4); background: rgba(244,114,182,0.15);
+      color: #ffe; font-size: 13px; cursor: pointer; display: none;
+    }
+    #dlg-pw-submit:hover { background: rgba(244,114,182,0.3); }
+
+    /* ── Party Decorations ─────────────────────────────── */
+    .confetti-piece {
+      position: fixed; z-index: 45; pointer-events: none;
+      width: 8px; height: 8px; border-radius: 2px;
+      animation: confettiFall linear forwards;
+    }
+    @keyframes confettiFall {
+      0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* ── Mobile Virtual Joystick ────────────────────────── */
+    #mobile-controls {
+      display: none; position: fixed; z-index: 35;
+      bottom: 28px; left: 28px;
+    }
+    #joystick-zone {
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: 2px solid rgba(255,255,255,0.15);
+      position: relative;
+      touch-action: none;
+    }
+    #joystick-knob {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: rgba(244,114,182,0.4);
+      border: 2px solid rgba(244,114,182,0.6);
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    #mobile-btns {
+      display: none; position: fixed; z-index: 35;
+      bottom: 28px; right: 28px;
+      gap: 10px; flex-direction: column; align-items: flex-end;
+    }
+    .m-btn {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid rgba(255,255,255,0.2);
+      color: #fff; font-size: 18px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; touch-action: manipulation;
+    }
+    .m-btn:active { background: rgba(244,114,182,0.3); }
+
+    /* ── Progress Tracker (top-left) ────────────────────── */
+    #progress-tracker {
+      position: fixed; top: 18px; left: 18px;
+      color: white; background: rgba(0,0,0,0.5);
+      padding: 10px 14px; border-radius: 10px;
+      font-size: 11px; backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.08);
+      display: none; max-width: 170px;
+    }
+    #progress-tracker .pt-title {
+      color: #f9a8d4; font-weight: bold; font-size: 12px;
+      margin-bottom: 6px; letter-spacing: 0.5px;
+    }
+    .pt-item {
+      display: flex; align-items: center; gap: 6px;
+      margin-bottom: 3px; color: #999;
+    }
+    .pt-item.done { color: #4ade80; }
+    .pt-item .pt-check { font-size: 12px; }
+
+    /* ── Settings (top-right) ───────────────────── */
+    #settings-btn {
+      position: fixed; top: 18px; right: 18px;
+      background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15);
+      color: white; font-size: 20px; width: 38px; height: 38px;
+      border-radius: 8px; cursor: pointer; backdrop-filter: blur(8px);
+      display: none; z-index: 200; line-height: 38px; text-align: center;
+      border: none;
+    }
+    #settings-btn:hover { background: rgba(255,255,255,0.1); }
+    #settings-panel {
+      position: fixed; top: 62px; right: 18px;
+      background: rgba(10,5,20,0.88); border: 1px solid rgba(249,168,212,0.25);
+      color: white; padding: 14px 16px; border-radius: 10px;
+      backdrop-filter: blur(12px); display: none; z-index: 200;
+      font-size: 12px; min-width: 190px;
+    }
+    #settings-panel h4 { color: #f9a8d4; margin: 0 0 10px; font-size: 13px; letter-spacing: 0.5px; }
+    #settings-panel .s-btn {
+      background: rgba(239,68,68,0.18); border: 1px solid rgba(239,68,68,0.35);
+      color: #fca5a5; padding: 7px 12px; border-radius: 6px;
+      cursor: pointer; font-size: 12px; width: 100%; display: block; margin-bottom: 6px;
+    }
+    #settings-panel .s-btn:hover { background: rgba(239,68,68,0.32); }
+  </style>
+</head>
+<body>
+
+<!-- ═══ Player Selection Screen ═══ -->
+<div id="player-select">
+  <h1>✨ ANAS-24 ✨</h1>
+  <div class="sub">A BIRTHDAY ADVENTURE</div>
+  <div class="prompt">Choose who you want to play as</div>
+  <div class="player-btns">
+    <button class="player-btn" id="btn-anas">🎂 Anas</button>
+    <button class="player-btn" id="btn-pra">🎮 Pra</button>
+  </div>
+  <div id="pra-pw-wrap">
+    <input type="password" id="pra-pw-input" placeholder="Enter password..." autocomplete="off">
+    <div id="pra-pw-err">Wrong password!</div>
+    <button id="pra-pw-go">Enter</button>
+  </div>
+</div>
+
+<!-- ═══ Settings ═══ -->
+<button id="settings-btn" title="Settings">⚙</button>
+<div id="settings-panel">
+  <h4>⚙ Settings</h4>
+  <button class="s-btn" id="btn-reset-progress">🗑 Reset All Progress</button>
+</div>
+
+<!-- ═══ Loading Screen ═══ -->
+<div id="loading">
+  <h1>ANAS-24</h1>
+  <div class="subtitle">BIRTHDAY WORLD</div>
+  <div id="loading-bar-bg"><div id="loading-bar"></div></div>
+  <div id="loading-text">Initializing scene...</div>
+</div>
+
+<!-- ═══ Birthday Banner ═══ -->
+<div id="bday-banner">
+  <h1>Happy Birthday<br>Anastasia!</h1>
+  <div class="emoji-row">💖🎉🪿💝</div>
+  <div class="dismiss" id="bday-dismiss">click anywhere to continue</div>
+</div>
+
+<!-- ═══ Fireworks Canvas ═══ -->
+<canvas id="fireworks-canvas"></canvas>
+
+<!-- ═══ Controls Panel ═══ -->
+<div id="controls">
+  <h3>CONTROLS</h3>
+  <div><span class="key">W A S D</span> &nbsp;Move</div>
+  <div><span class="key">Shift</span> &nbsp;Run</div>
+  <div><span class="key">Space</span> &nbsp;Jump</div>
+  <div><span class="key">E</span> &nbsp;Talk to NPC / Advance</div>
+  <div><span class="key">Q</span> &nbsp;Close dialogue</div>
+  <div><span class="key">F</span> &nbsp;Dance &nbsp; <span class="key">V</span> &nbsp;Wave &nbsp; <span class="key">T</span> &nbsp;Think</div>
+  <div><span class="key">Mouse Drag</span> &nbsp;Rotate Camera</div>
+  <div><span class="key">Scroll</span> &nbsp;Zoom</div>
+</div>
+
+<!-- ═══ HUD ═══ -->
+<div id="hud">
+  <div style="font-size:10px;color:#666;margin-bottom:3px">ACTION</div>
+  <div id="anim-state">Idle</div>
+</div>
+
+<!-- ═══ Hint ═══ -->
+<div id="hint">Drag to rotate camera &nbsp;·&nbsp; WASD to move &nbsp;·&nbsp; Walk up to characters and press E</div>
+
+<!-- ═══ NPC Interaction Bubble (Genshin-style) ═══ -->
+<div id="npc-bubble" onclick="window._bubbleClick && window._bubbleClick()">
+  <span class="bubble-icon">💬</span>
+  <span class="bubble-name" id="bubble-name"></span>
+</div>
+
+<!-- ═══ Progress Tracker ═══ -->
+<div id="progress-tracker">
+  <div class="pt-title">🎉 Birthday Checklist</div>
+  <div id="pt-list"></div>
+</div>
+
+<!-- ═══ Mobile Controls ═══ -->
+<div id="mobile-controls">
+  <div id="joystick-zone"><div id="joystick-knob"></div></div>
+</div>
+<div id="cam-touch-zone"></div>
+<div id="mobile-btns">
+  <div class="m-btn" id="m-jump">⬆</div>
+  <div class="m-btn" id="m-run">🏃</div>
+</div>
+
+<!-- ═══ Dialogue Box ═══ -->
+<div id="dialogue-box">
+  <button id="dlg-close-btn" title="Close (Q)">×</button>
+  <div class="speaker" id="dlg-speaker"></div>
+  <div class="line" id="dlg-line"></div>
+  <div id="dlg-choices"></div>
+  <div id="dlg-password-wrap">
+    <input type="text" id="dlg-pw-input" placeholder="Type your answer..." autocomplete="off">
+    <button id="dlg-pw-submit">Submit</button>
+    <div id="dlg-pw-err"></div>
+  </div>
+  <div class="dlg-hint" id="dlg-hint" style="cursor:pointer" onclick="window._dlgTapAdvance && window._dlgTapAdvance()">[E] continue · [Q] close</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PRE-GAME: Player select, Fireworks, Birthday banner, State mgmt
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+// ── Globals shared with module script ─────────────────────────
+window.GAME = {
+  player: null,           // 'anas' | 'pra'
+  state: {                // synced to DB in background
+    talkedTo: {},         // e.g. { 'trio': true, 'fatLady': true, ... }
+    fatLadyPassed: false,
+    praConvoComplete: false,
+  },
+  ready: false,           // set true after player picks + loads
+  _saveTimer: null,
+  _dirty: false,
+};
+
+// ── State persistence (fire-and-forget to backend) ────────────
+window.GAME.save = function() {
+  window.GAME._dirty = true;
+  // Debounce: save at most every 1.5s
+  if (window.GAME._saveTimer) return;
+  window.GAME._saveTimer = setTimeout(() => {
+    window.GAME._saveTimer = null;
+    if (!window.GAME._dirty || !window.GAME.player) return;
+    window.GAME._dirty = false;
+    fetch('/api/state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ player: window.GAME.player, state: window.GAME.state }),
+    }).catch(err => console.warn('[Save]', err));
+  }, 1500);
+};
+
+window.GAME.markTalked = function(key) {
+  window.GAME.state.talkedTo[key] = true;
+  window.GAME.save();
+};
+
+window.GAME.loadState = async function(player) {
+  try {
+    const r = await fetch('/api/state?player=' + player);
+    if (r.ok) {
+      const s = await r.json();
+      if (s && typeof s === 'object' && s.talkedTo) {
+        window.GAME.state = s;
+      }
+    }
+  } catch(e) { console.warn('[LoadState]', e); }
+};
+
+// ── Fireworks system ──────────────────────────────────────────
+const fwCanvas = document.getElementById('fireworks-canvas');
+const fwCtx = fwCanvas.getContext('2d');
+let fwParticles = [], fwRunning = false;
+
+function fwResize() {
+  fwCanvas.width = window.innerWidth;
+  fwCanvas.height = window.innerHeight;
+}
+
+function fwLaunch() {
+  const cx = Math.random() * fwCanvas.width * 0.6 + fwCanvas.width * 0.2;
+  const cy = Math.random() * fwCanvas.height * 0.35 + fwCanvas.height * 0.08;
+  const hue = Math.random() * 360;
+  const count = 45 + Math.floor(Math.random() * 35);
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.3;
+    const speed = 1.5 + Math.random() * 3.5;
+    fwParticles.push({
+      x: cx, y: cy,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 1.0,
+      decay: 0.008 + Math.random() * 0.012,
+      hue: hue + Math.random() * 40 - 20,
+      size: 1.5 + Math.random() * 2,
+    });
+  }
+}
+
+function fwTick() {
+  if (!fwRunning) return;
+  fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+  for (let i = fwParticles.length - 1; i >= 0; i--) {
+    const p = fwParticles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.035; // gravity
+    p.life -= p.decay;
+    if (p.life <= 0) { fwParticles.splice(i, 1); continue; }
+    fwCtx.globalAlpha = p.life;
+    fwCtx.fillStyle = `hsl(${p.hue}, 100%, ${50 + p.life * 30}%)`;
+    fwCtx.beginPath();
+    fwCtx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+    fwCtx.fill();
+  }
+  fwCtx.globalAlpha = 1;
+  requestAnimationFrame(fwTick);
+}
+
+function startFireworks() {
+  fwResize();
+  fwCanvas.style.display = 'block';
+  fwRunning = true;
+  fwTick();
+  // Launch clusters
+  const iv = setInterval(() => { if (fwRunning) fwLaunch(); }, 350);
+  // Initial burst
+  for (let i = 0; i < 4; i++) setTimeout(() => fwLaunch(), i * 120);
+  return iv;
+}
+
+function stopFireworks(iv) {
+  clearInterval(iv);
+  fwRunning = false;
+  fwCanvas.style.display = 'none';
+  fwParticles = [];
+}
+
+// ── Player Selection Logic ────────────────────────────────────
+document.getElementById('btn-anas').addEventListener('click', () => {
+  window.GAME.player = 'anas';
+  startGame();
+});
+
+document.getElementById('btn-pra').addEventListener('click', () => {
+  document.getElementById('pra-pw-wrap').style.display = 'flex';
+  document.getElementById('pra-pw-input').focus();
+});
+
+document.getElementById('pra-pw-go').addEventListener('click', tryPraLogin);
+document.getElementById('pra-pw-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') tryPraLogin();
+});
+
+function tryPraLogin() {
+  const pw = document.getElementById('pra-pw-input').value;
+  if (pw === 'pranaylive') {
+    window.GAME.player = 'pra';
+    startGame();
+  } else {
+    document.getElementById('pra-pw-err').style.display = 'block';
+    document.getElementById('pra-pw-input').value = '';
+    setTimeout(() => document.getElementById('pra-pw-err').style.display = 'none', 2000);
+  }
+}
+
+async function startGame() {
+  // Load saved state from DB
+  await window.GAME.loadState(window.GAME.player);
+
+  // Hide player select, show loading
+  document.getElementById('player-select').style.display = 'none';
+  document.getElementById('loading').style.display = 'flex';
+
+  // Signal the module script to proceed
+  window.GAME.ready = true;
+  window.dispatchEvent(new Event('game-start'));
+}
+
+// ── Birthday banner ───────────────────────────────────────────
+window.showBirthdayBanner = function() {
+  return new Promise(resolve => {
+    const banner = document.getElementById('bday-banner');
+    banner.style.display = 'flex';
+    const fwIv = startFireworks();
+
+    function dismiss() {
+      banner.style.display = 'none';
+      stopFireworks(fwIv);
+      document.removeEventListener('click', dismiss);
+      document.removeEventListener('keydown', dismiss);
+      resolve();
+    }
+    // Let the first frame render before listening
+    setTimeout(() => {
+      document.addEventListener('click', dismiss, { once: true });
+      document.addEventListener('keydown', dismiss, { once: true });
+    }, 600);
+  });
+};
+
+// ── Confetti helper (reusable) ────────────────────────────────
+window.spawnConfetti = function(count = 40) {
+  const colors = ['#f472b6','#fb923c','#facc15','#34d399','#60a5fa','#c084fc','#fb7185'];
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.animationDuration = (2 + Math.random() * 3) + 's';
+    el.style.animationDelay = Math.random() * 1.5 + 's';
+    el.style.width = (5 + Math.random() * 6) + 'px';
+    el.style.height = (5 + Math.random() * 6) + 'px';
+    document.body.appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
+  }
+};
+
+window.addEventListener('resize', fwResize);
+</script>
+
+<!-- Import Map -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.164.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.0/examples/jsm/",
+    "@pixiv/three-vrm": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@2.1.3/lib/three-vrm.module.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass }    from 'three/addons/postprocessing/RenderPass.js';
+import { OutlinePass }   from 'three/addons/postprocessing/OutlinePass.js';
+import { OutputPass }    from 'three/addons/postprocessing/OutputPass.js';
+import { SMAAPass }      from 'three/addons/postprocessing/SMAAPass.js';
+
+// ── Wait for player selection before building world ──────────
+if (!window.GAME.ready) {
+  await new Promise(r => window.addEventListener('game-start', r, { once: true }));
+}
+const G = window.GAME; // shortcut
+
+//──────────────────────────────────────────────────────────────────
+// RENDERER
+//──────────────────────────────────────────────────────────────────
+const renderer = new THREE.WebGLRenderer({ antialias: false }); // SMAA handles AA
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.90;
+document.body.appendChild(renderer.domElement);
+
+//──────────────────────────────────────────────────────────────────
+// SCENE & CAMERA
+//──────────────────────────────────────────────────────────────────
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);
+scene.fog = new THREE.FogExp2(0x9fcfe8, 0.008);
+
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 300);
+camera.position.set(0, 3, 6);
+
+//──────────────────────────────────────────────────────────────────
+// POST-PROCESSING (Outline + SMAA)
+//──────────────────────────────────────────────────────────────────
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+
+const outlinePass = new OutlinePass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight), scene, camera);
+outlinePass.edgeStrength   = 4.0;
+outlinePass.edgeGlow       = 0.0;
+outlinePass.edgeThickness  = 1.0;
+outlinePass.visibleEdgeColor.set('#1a1a1a');
+outlinePass.hiddenEdgeColor.set('#000000');
+composer.addPass(outlinePass);
+composer.addPass(new SMAAPass(window.innerWidth, window.innerHeight));
+composer.addPass(new OutputPass());
+
+//──────────────────────────────────────────────────────────────────
+// LOADING HELPERS
+//──────────────────────────────────────────────────────────────────
+function setProgress(pct, msg) {
+  document.getElementById('loading-bar').style.width = pct + '%';
+  document.getElementById('loading-text').textContent = msg;
+}
+
+//──────────────────────────────────────────────────────────────────
+// LIGHTING
+//──────────────────────────────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0xb0c8e8, 1.3));
+scene.add(new THREE.HemisphereLight(0x87ceeb, 0x3d6b33, 0.85));
+
+const sun = new THREE.DirectionalLight(0xfff5e0, 3.5);
+sun.position.set(50, 90, 40);
+sun.castShadow = true;
+sun.shadow.mapSize.set(4096, 4096);
+sun.shadow.camera.near   = 1;
+sun.shadow.camera.far    = 280;
+sun.shadow.camera.left   = -120;
+sun.shadow.camera.right  =  120;
+sun.shadow.camera.top    =  120;
+sun.shadow.camera.bottom = -120;
+sun.shadow.bias          = -0.0003;
+sun.shadow.normalBias    =  0.02;
+scene.add(sun);
+
+const fill = new THREE.DirectionalLight(0x88aaff, 0.5);
+fill.position.set(-30, 20, -20);
+scene.add(fill);
+
+//──────────────────────────────────────────────────────────────────
+// COLLISION SYSTEM
+//──────────────────────────────────────────────────────────────────
+const circleObs = [];   // {x, z, r}
+const rectObs   = [];   // {x0, x1, z0, z1}
+const CHAR_R    = 0.35;
+const WORLD_BOUND = 43;
+
+function addCir(x, z, r)        { circleObs.push({x, z, r}); }
+function addRec(x0, x1, z0, z1) { rectObs.push({x0, x1, z0, z1}); }
+
+function resolvePos(p) {
+  p.x = Math.max(-WORLD_BOUND, Math.min(WORLD_BOUND, p.x));
+  p.z = Math.max(-WORLD_BOUND, Math.min(WORLD_BOUND, p.z));
+  for (const o of circleObs) {
+    const dx = p.x-o.x, dz = p.z-o.z;
+    const d  = Math.sqrt(dx*dx+dz*dz);
+    const md = CHAR_R+o.r;
+    if (d < md && d > 0.001) { p.x += (dx/d)*(md-d); p.z += (dz/d)*(md-d); }
+  }
+  for (const r of rectObs) {
+    const cx = Math.max(r.x0, Math.min(r.x1, p.x));
+    const cz = Math.max(r.z0, Math.min(r.z1, p.z));
+    const dx = p.x-cx, dz = p.z-cz;
+    const d  = Math.sqrt(dx*dx+dz*dz);
+    if (d < CHAR_R) {
+      if (d > 0.001) { p.x += (dx/d)*(CHAR_R-d); p.z += (dz/d)*(CHAR_R-d); }
+      else {
+        const dL=p.x-r.x0, dR=r.x1-p.x, dB=p.z-r.z0, dF=r.z1-p.z;
+        const m=Math.min(dL,dR,dB,dF);
+        if      (m===dL) p.x=r.x0-CHAR_R;
+        else if (m===dR) p.x=r.x1+CHAR_R;
+        else if (m===dB) p.z=r.z0-CHAR_R;
+        else             p.z=r.z1+CHAR_R;
+      }
+    }
+  }
+}
+
+// Shadow helper
+function sh(mesh) { mesh.castShadow=true; mesh.receiveShadow=true; return mesh; }
+
+//──────────────────────────────────────────────────────────────────
+// GROUND
+//──────────────────────────────────────────────────────────────────
+const groundMat = new THREE.MeshLambertMaterial({ color: 0x4a8c42 });
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(210, 210), groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+setProgress(10, 'Laying roads\u2026');
+
+//──────────────────────────────────────────────────────────────────
+// ROADS
+//──────────────────────────────────────────────────────────────────
+const RW = 4.6, SW = 1.0, RLEN = 88;
+
+function flatRect(w, d, x, z, mat, yOff) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), mat);
+  m.rotation.x = -Math.PI/2;
+  m.position.set(x, yOff||0.01, z);
+  m.receiveShadow = true;
+  scene.add(m);
+}
+
+const roadMat     = new THREE.MeshLambertMaterial({color:0x3d3d3d});
+const sidewalkMat = new THREE.MeshLambertMaterial({color:0xb0a898});
+
+// N-S road (runs along Z, x≈0)
+flatRect(RW*2, RLEN*2, 0, 0, roadMat);
+flatRect(SW, RLEN*2, -(RW+SW/2), 0, sidewalkMat, 0.012);
+flatRect(SW, RLEN*2,  (RW+SW/2), 0, sidewalkMat, 0.012);
+// E-W road (runs along X, z≈0)
+flatRect(RLEN*2, RW*2, 0, 0, roadMat);
+flatRect(RLEN*2, SW, 0, -(RW+SW/2), sidewalkMat, 0.013);
+flatRect(RLEN*2, SW, 0,  (RW+SW/2), sidewalkMat, 0.013);
+
+setProgress(22, 'Raising the castle\u2026');
+
+//──────────────────────────────────────────────────────────────────
+// CASTLE (Hogwarts-inspired)
+//──────────────────────────────────────────────────────────────────
+const CX = 20, CZ = -22;
+const CHIK_X = -28, CHIK_Z = 22;
+const stoneL  = new THREE.MeshLambertMaterial({color: 0x9a948e});
+const stoneM  = new THREE.MeshLambertMaterial({color: 0x7a756f});
+const stoneDk = new THREE.MeshLambertMaterial({color: 0x5a5550});
+const slateR  = new THREE.MeshLambertMaterial({color: 0x3a1f30});
+const cWinM   = new THREE.MeshLambertMaterial({color: 0x99bbee, emissive: 0x335577, emissiveIntensity: 0.5});
+const cDoorM  = new THREE.MeshLambertMaterial({color: 0x3a2818});
+const cFlagM  = new THREE.MeshLambertMaterial({color: 0xcc2244, side: THREE.DoubleSide});
+
+function put(geo, mat, x, y, z) {
+  const m = sh(new THREE.Mesh(geo, mat));
+  m.position.set(x, y, z); scene.add(m); return m;
+}
+
+function castleTower(tx, tz, r, h, rh) {
+  put(new THREE.CylinderGeometry(r, r*1.06, h, 16), stoneM, tx, h/2, tz);
+  put(new THREE.ConeGeometry(r*1.35, rh, 16), slateR, tx, h+rh/2, tz);
+  const nm = Math.round(r * 5.5);
+  for (let i = 0; i < nm; i++) {
+    const a = (i/nm) * Math.PI * 2;
+    put(new THREE.BoxGeometry(0.35, 0.55, 0.22), stoneM,
+      tx + Math.cos(a)*(r+0.12), h + 0.28, tz + Math.sin(a)*(r+0.12)).rotation.y = -a;
+  }
+  for (let j = 0; j < 4; j++) {
+    const a = (j/4)*Math.PI*2 + Math.PI/4;
+    const wx = tx + Math.cos(a)*(r+0.06), wz = tz + Math.sin(a)*(r+0.06);
+    const w = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.0, 0.12), cWinM);
+    w.position.set(wx, h*0.6, wz); w.rotation.y = -a; scene.add(w);
+    if (h > 13) {
+      const w2 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.0, 0.12), cWinM);
+      w2.position.set(wx, h*0.3, wz); w2.rotation.y = -a; scene.add(w2);
+    }
+  }
+  addCir(tx, tz, r + 0.5);
+}
+
+function crenels(xa, za, xb, zb, h, mat) {
+  const dx = xb-xa, dz = zb-za, len = Math.sqrt(dx*dx + dz*dz);
+  const n = Math.max(2, Math.round(len / 1.1)), isX = Math.abs(dx) > Math.abs(dz);
+  for (let i = 0; i <= n; i += 2) {
+    const t = i / n;
+    put(isX ? new THREE.BoxGeometry(0.45,0.55,0.4) : new THREE.BoxGeometry(0.4,0.55,0.45),
+      mat, xa + dx*t, h + 0.28, za + dz*t);
+  }
+}
+
+// Great Hall (main keep)
+const KW = 16, KD = 12, KH = 9;
+put(new THREE.BoxGeometry(KW, KH, KD), stoneL, CX, KH/2, CZ);
+addRec(CX-KW/2, CX+KW/2, CZ-KD/2, CZ+KD/2);
+crenels(CX-KW/2+0.3, CZ-KD/2, CX+KW/2-0.3, CZ-KD/2, KH, stoneL);
+crenels(CX-KW/2+0.3, CZ+KD/2, CX+KW/2-0.3, CZ+KD/2, KH, stoneL);
+crenels(CX-KW/2, CZ-KD/2+0.3, CX-KW/2, CZ+KD/2-0.3, KH, stoneL);
+crenels(CX+KW/2, CZ-KD/2+0.3, CX+KW/2, CZ+KD/2-0.3, KH, stoneL);
+
+// Hall windows
+const hwF = new THREE.BoxGeometry(0.9, 1.6, 0.15);
+const hwS = new THREE.BoxGeometry(0.15, 1.6, 0.9);
+for (let x = CX-5.5; x <= CX+5.5; x += 3.6) {
+  if (Math.abs(x-CX) < 1.8) continue;
+  let w;
+  w = new THREE.Mesh(hwF, cWinM); w.position.set(x, KH*0.55, CZ+KD/2+0.08); scene.add(w);
+  w = new THREE.Mesh(hwF, cWinM); w.position.set(x, KH*0.55, CZ-KD/2-0.08); scene.add(w);
+}
+for (let z = CZ-3.5; z <= CZ+3.5; z += 3.6) {
+  let w;
+  w = new THREE.Mesh(hwS, cWinM); w.position.set(CX-KW/2-0.08, KH*0.55, z); scene.add(w);
+  w = new THREE.Mesh(hwS, cWinM); w.position.set(CX+KW/2+0.08, KH*0.55, z); scene.add(w);
+}
+
+
+// Grand entrance (south face)
+const edZ = CZ + KD/2 + 0.07;
+put(new THREE.BoxGeometry(2.6, 3.8, 0.16), cDoorM, CX, 1.9, edZ);
+put(new THREE.BoxGeometry(3.6, 0.6, 0.4), stoneDk, CX, 4.0, edZ);
+put(new THREE.BoxGeometry(0.45, 4.2, 0.4), stoneDk, CX-1.5, 2.1, edZ);
+put(new THREE.BoxGeometry(0.45, 4.2, 0.4), stoneDk, CX+1.5, 2.1, edZ);
+put(new THREE.BoxGeometry(4.5, 0.25, 1.4), stoneM, CX, 0.13, CZ+KD/2+0.85);
+
+// Corner Towers
+[[CX-KW/2, CZ-KD/2],[CX+KW/2, CZ-KD/2],[CX-KW/2, CZ+KD/2],[CX+KW/2, CZ+KD/2]]
+  .forEach(([tx, tz]) => castleTower(tx, tz, 2.2, 15, 5.5));
+
+// Grand Central Tower (the Astronomy Tower)
+castleTower(CX, CZ-KD/2, 3.2, 24, 8);
+const fpole = sh(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 4.5, 6), stoneDk));
+fpole.position.set(CX, 34.25, CZ-KD/2); scene.add(fpole);
+const cflag = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 1.1), cFlagM);
+cflag.position.set(CX+1.0, 35.8, CZ-KD/2); scene.add(cflag);
+
+// Courtyard (forward from keep)
+const CYD = 8, CWH = 4.5, CWT = 0.55;
+put(new THREE.BoxGeometry(CWT, CWH, CYD), stoneL, CX-KW/2, CWH/2, CZ+KD/2+CYD/2);
+addRec(CX-KW/2-CWT/2, CX-KW/2+CWT/2, CZ+KD/2, CZ+KD/2+CYD);
+crenels(CX-KW/2, CZ+KD/2+0.5, CX-KW/2, CZ+KD/2+CYD-0.5, CWH, stoneL);
+put(new THREE.BoxGeometry(CWT, CWH, CYD), stoneL, CX+KW/2, CWH/2, CZ+KD/2+CYD/2);
+addRec(CX+KW/2-CWT/2, CX+KW/2+CWT/2, CZ+KD/2, CZ+KD/2+CYD);
+crenels(CX+KW/2, CZ+KD/2+0.5, CX+KW/2, CZ+KD/2+CYD-0.5, CWH, stoneL);
+const GHW = 2.2, cyFZ = CZ+KD/2+CYD, frHW = (KW-GHW*2)/2;
+put(new THREE.BoxGeometry(frHW, CWH, CWT), stoneL, CX-KW/4-GHW/2, CWH/2, cyFZ);
+put(new THREE.BoxGeometry(frHW, CWH, CWT), stoneL, CX+KW/4+GHW/2, CWH/2, cyFZ);
+addRec(CX-KW/2, CX-GHW, cyFZ-CWT/2, cyFZ+CWT/2);
+addRec(CX+GHW, CX+KW/2, cyFZ-CWT/2, cyFZ+CWT/2);
+crenels(CX-KW/2+0.3, cyFZ, CX-GHW-0.3, cyFZ, CWH, stoneL);
+crenels(CX+GHW+0.3, cyFZ, CX+KW/2-0.3, cyFZ, CWH, stoneL);
+castleTower(CX-GHW-0.3, cyFZ, 1.6, 11, 4);
+castleTower(CX+GHW+0.3, cyFZ, 1.6, 11, 4);
+const cyFloor = new THREE.Mesh(new THREE.PlaneGeometry(KW-CWT*2, CYD),
+  new THREE.MeshLambertMaterial({color: 0x807a72}));
+cyFloor.rotation.x = -Math.PI/2;
+cyFloor.position.set(CX, 0.012, CZ+KD/2+CYD/2);
+cyFloor.receiveShadow = true; scene.add(cyFloor);
+
+// Stone path from gate to road
+const cpS = CZ+KD/2+CYD+0.3, cpE = -(RW+SW)-0.2;
+const cpMesh = new THREE.Mesh(new THREE.PlaneGeometry(2.2, cpS-cpE),
+  new THREE.MeshLambertMaterial({color: 0x807a72}));
+cpMesh.rotation.x = -Math.PI/2;
+cpMesh.position.set(CX, 0.014, (cpS+cpE)/2);
+cpMesh.receiveShadow = true; scene.add(cpMesh);
+
+setProgress(40, 'Building fence');
+
+//──────────────────────────────────────────────────────────────────
+// PERIMETER FENCE
+//──────────────────────────────────────────────────────────────────
+const BOUND = 44, FH = 2.2;
+const fenceMat  = new THREE.MeshLambertMaterial({color: 0xc8a060});
+const fPostMat  = new THREE.MeshLambertMaterial({color: 0x9a7840});
+
+function buildFenceLine(ax, az, bx, bz) {
+  const isX = Math.abs(bx - ax) > Math.abs(bz - az);
+  const len = isX ? Math.abs(bx - ax) : Math.abs(bz - az);
+  const mx = (ax + bx) / 2, mz = (az + bz) / 2;
+
+  // Solid wall slab (thin)
+  const wallGeo = isX
+    ? new THREE.BoxGeometry(len, FH, 0.18)
+    : new THREE.BoxGeometry(0.18, FH, len);
+  const wall = sh(new THREE.Mesh(wallGeo, fenceMat));
+  wall.position.set(mx, FH / 2, mz);
+  scene.add(wall);
+
+  // Rails (top and mid)
+  [FH * 0.95, FH * 0.45].forEach(ry => {
+    const rGeo = isX
+      ? new THREE.BoxGeometry(len + 0.1, 0.10, 0.24)
+      : new THREE.BoxGeometry(0.24, 0.10, len + 0.1);
+    const rail = sh(new THREE.Mesh(rGeo, fPostMat));
+    rail.position.set(mx, ry, mz);
+    scene.add(rail);
+  });
+
+  // Posts every ~3 units
+  const np = Math.max(2, Math.round(len / 3));
+  for (let i = 0; i <= np; i++) {
+    const t = i / np;
+    const px = ax + (bx - ax) * t;
+    const pz = az + (bz - az) * t;
+    const post = sh(new THREE.Mesh(new THREE.BoxGeometry(0.22, FH + 0.35, 0.22), fPostMat));
+    post.position.set(px, (FH + 0.35) / 2, pz);
+    scene.add(post);
+  }
+
+  // Collision
+  if (isX) addRec(Math.min(ax, bx), Math.max(ax, bx), mz - 0.30, mz + 0.30);
+  else     addRec(mx - 0.30, mx + 0.30, Math.min(az, bz), Math.max(az, bz));
+}
+
+// Four sides
+buildFenceLine(-BOUND, -BOUND, BOUND, -BOUND);  // North
+buildFenceLine(-BOUND,  BOUND, BOUND,  BOUND);  // South
+buildFenceLine(-BOUND, -BOUND, -BOUND, BOUND);  // West
+buildFenceLine( BOUND, -BOUND,  BOUND, BOUND);  // East
+
+setProgress(52, 'Growing trees\u2026');
+
+//──────────────────────────────────────────────────────────────────
+// TREES (deterministic placement using seeded random)
+//──────────────────────────────────────────────────────────────────
+let _treeSeed = 19974973; // Deterministic world seed (adjusted to avoid NPC overlap)
+function seededRandom() {
+  _treeSeed = (_treeSeed * 9301 + 49297) % 233280;
+  return _treeSeed / 233280;
+}
+const trunkMat = new THREE.MeshLambertMaterial({ color: 0x6b4226 });
+
+function spawnOk(x, z, minR=2.5) {
+  if (Math.abs(x) < RW+SW+1.2) return false;
+  if (Math.abs(z) < RW+SW+1.2) return false;
+  for (const o of circleObs)
+    if (Math.sqrt((x-o.x)**2+(z-o.z)**2) < minR+o.r+0.8) return false;
+  for (const r of rectObs) {
+    const cx = Math.max(r.x0, Math.min(r.x1, x));
+    const cz = Math.max(r.z0, Math.min(r.z1, z));
+    if (Math.sqrt((x-cx)**2+(z-cz)**2) < minR+0.5) return false;
+  }
+  return true;
+}
+
+function makeTree(x, z, sc=1) {
+  const g = new THREE.Group();
+  const trH = (1.8+seededRandom())*sc;
+  const trunk = sh(new THREE.Mesh(new THREE.CylinderGeometry(0.13*sc,0.22*sc,trH,7), trunkMat));
+  trunk.position.y = trH/2; g.add(trunk);
+  const hue = 0.26+seededRandom()*0.10;
+  const leaf = new THREE.MeshLambertMaterial({color:new THREE.Color().setHSL(hue,0.65,0.22+seededRandom()*0.10)});
+  [{r:1.9*sc,h:2.8*sc,y:trH+0.3},{r:1.45*sc,h:2.4*sc,y:trH+1.6},{r:0.85*sc,h:2.0*sc,y:trH+2.8}]
+    .forEach(l=>{ const c=sh(new THREE.Mesh(new THREE.ConeGeometry(l.r,l.h,7),leaf)); c.position.y=l.y; g.add(c); });
+  g.position.set(x,0,z); g.rotation.y=seededRandom()*Math.PI*2;
+  scene.add(g); addCir(x,z,0.9*sc);
+}
+
+// Along road edges
+for (let d=-36;d<=36;d+=9.0) {
+  [RW+SW+2.0,-(RW+SW+2.0)].forEach(off=>{
+    const xv=off+(seededRandom()-.5)*.6, zv=d+(seededRandom()-.5)*.6;
+    const xh=d+(seededRandom()-.5)*.6, zh=off+(seededRandom()-.5)*.6;
+    if(spawnOk(xv,zv)) makeTree(xv,zv,0.8+seededRandom()*.3);
+    if(spawnOk(xh,zh)) makeTree(xh,zh,0.8+seededRandom()*.3);
+  });
+}
+// Scattered
+for(let i=0;i<32;i++){
+  const a=seededRandom()*Math.PI*2, d=9+seededRandom()*32;
+  const x=Math.cos(a)*d, z=Math.sin(a)*d;
+  if(spawnOk(x,z)) makeTree(x,z,0.75+seededRandom()*.55);
+}
+// Forest border
+for(let i=0;i<27;i++){
+  const a=(i/27)*Math.PI*2+seededRandom()*.15, d=35+seededRandom()*7;
+  const x=Math.cos(a)*d, z=Math.sin(a)*d;
+  if(spawnOk(x,z,1.5)) makeTree(x,z,1.0+seededRandom()*.4);
+}
+
+setProgress(63, 'Adding rocks & lamps\u2026');
+
+//──────────────────────────────────────────────────────────────────
+// ROCKS
+//──────────────────────────────────────────────────────────────────
+for(let i=0;i<20;i++){
+  const a=seededRandom()*Math.PI*2, d=8+seededRandom()*28;
+  const x=Math.cos(a)*d, z=Math.sin(a)*d;
+  if(!spawnOk(x,z,1)) continue;
+  const rock=sh(new THREE.Mesh(
+    new THREE.DodecahedronGeometry(0.3+seededRandom()*.6,1),
+    new THREE.MeshLambertMaterial({color:new THREE.Color().setHSL(0,0,0.35+seededRandom()*.2)})
+  ));
+  rock.position.set(x,0.1+seededRandom()*.1,z);
+  rock.rotation.set(seededRandom()*2,seededRandom()*2,seededRandom()*.5);
+  rock.scale.set(1,0.6+seededRandom()*.6,1.1+seededRandom()*.4);
+  scene.add(rock); addCir(x,z,0.65);
+}
+
+//──────────────────────────────────────────────────────────────────
+// STREET LAMPS
+//──────────────────────────────────────────────────────────────────
+const lampPoleMat = new THREE.MeshLambertMaterial({color:0x444444});
+const lampGlowMat = new THREE.MeshLambertMaterial({color:0xffeecc,emissive:0xffeecc,emissiveIntensity:0.9});
+
+function makeLamp(x,z) {
+  const g=new THREE.Group();
+  const pole=sh(new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.10,4.5,8),lampPoleMat));
+  pole.position.y=2.25; g.add(pole);
+  const arm=sh(new THREE.Mesh(new THREE.BoxGeometry(1.0,0.08,0.08),lampPoleMat));
+  arm.position.set(0.5,4.5,0); g.add(arm);
+  const head=sh(new THREE.Mesh(new THREE.BoxGeometry(0.55,0.22,0.32),lampPoleMat));
+  head.position.set(1.0,4.5,0); g.add(head);
+  const glow=new THREE.Mesh(new THREE.SphereGeometry(0.14,8,6),lampGlowMat);
+  glow.position.set(1.0,4.35,0); g.add(glow);
+  g.position.set(x,0,z); scene.add(g); addCir(x,z,0.22);
+}
+for(let d=-36;d<=36;d+=9){
+  makeLamp( RW+SW+1.0, d); makeLamp(-(RW+SW+1.0), d);
+  makeLamp(d,  RW+SW+1.0); makeLamp(d, -(RW+SW+1.0));
+}
+
+//──────────────────────────────────────────────────────────────────
+// SKY DOME & SUN DISC
+//──────────────────────────────────────────────────────────────────
+const skySphere = new THREE.Mesh(
+  new THREE.SphereGeometry(280,16,8),
+  new THREE.MeshBasicMaterial({color:0x87ceeb,side:THREE.BackSide})
+);
+scene.add(skySphere);
+
+const sunDisc = new THREE.Mesh(
+  new THREE.CircleGeometry(9,16),
+  new THREE.MeshBasicMaterial({color:0xffee88})
+);
+sunDisc.position.set(140,160,-90); sunDisc.lookAt(0,0,0); scene.add(sunDisc);
+
+//──────────────────────────────────────────────────────────────────
+// CLOUDS
+//──────────────────────────────────────────────────────────────────
+const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.92 });
+
+function makeCloud(x, y, z) {
+  const g = new THREE.Group();
+  const blobs = [
+    [0, 0, 0, 1.4], [2.8, 0.4, 0, 1.1], [5.2, 0, 0.3, 1.3],
+    [-2.2, 0.3, 0, 1.0], [1.4, 1.0, 0, 0.9], [3.8, 0.8, 0, 0.8]
+  ];
+  blobs.forEach(([bx, by, bz, r]) => {
+    const m = new THREE.Mesh(new THREE.SphereGeometry(r, 7, 5), cloudMat);
+    m.position.set(bx, by, bz);
+    g.add(m);
+  });
+  g.position.set(x, y, z);
+  scene.add(g);
+  return g;
+}
+
+const clouds = [];
+for (let i = 0; i < 14; i++) {
+  clouds.push(makeCloud(
+    (Math.random() - 0.5) * 220,
+    55 + Math.random() * 35,
+    (Math.random() - 0.5) * 220
+  ));
+}
+
+setProgress(70, 'Party decorations\u2026');
+
+//──────────────────────────────────────────────────────────────────
+// PARTY DECORATIONS  🎉🎈🎂
+//──────────────────────────────────────────────────────────────────
+
+// ── Birthday Banner across courtyard gate ──
+{
+  const bannerW = GHW * 2 + 1.5, bannerH = 1.2;
+  const banCanvas = document.createElement('canvas');
+  banCanvas.width = 512; banCanvas.height = 128;
+  const bCtx = banCanvas.getContext('2d');
+  // Gradient background
+  const grad = bCtx.createLinearGradient(0, 0, 512, 0);
+  grad.addColorStop(0, '#f472b6'); grad.addColorStop(0.5, '#fb923c');
+  grad.addColorStop(1, '#facc15');
+  bCtx.fillStyle = grad;
+  bCtx.beginPath();
+  if (bCtx.roundRect) { bCtx.roundRect(0, 0, 512, 128, 18); } else { bCtx.rect(0, 0, 512, 128); }
+  bCtx.fill();
+  bCtx.fillStyle = '#fff';
+  bCtx.font = 'bold 42px Arial, sans-serif';
+  bCtx.textAlign = 'center'; bCtx.textBaseline = 'middle';
+  bCtx.fillText('🎉 Happy Birthday Anastasia! 🎂', 256, 64);
+  const banTex = new THREE.CanvasTexture(banCanvas);
+  const banMat = new THREE.MeshBasicMaterial({ map: banTex, transparent: true, side: THREE.DoubleSide });
+  const banner = new THREE.Mesh(new THREE.PlaneGeometry(bannerW, bannerH), banMat);
+  banner.position.set(CX, CWH + 1.0, cyFZ);
+  scene.add(banner);
+
+  // Ribbon strings hanging from banner ends
+  const ribMat = new THREE.MeshBasicMaterial({ color: 0xf472b6 });
+  [-bannerW / 2 + 0.15, bannerW / 2 - 0.15].forEach(offX => {
+    const rib = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.0, 4), ribMat);
+    rib.position.set(CX + offX, CWH + 0.5, cyFZ);
+    scene.add(rib);
+  });
+}
+
+// ── Floating balloons ──
+const balloons = [];
+const balloonColors = [0xf472b6, 0xfb923c, 0xfacc15, 0x34d399, 0x60a5fa, 0xc084fc, 0xfb7185, 0xff6b6b];
+
+function makeBalloon(x, y, z, color) {
+  const g = new THREE.Group();
+  // Balloon body (sphere + slight cone at bottom)
+  const body = new THREE.Mesh(
+    new THREE.SphereGeometry(0.35, 10, 8),
+    new THREE.MeshLambertMaterial({ color, emissive: color, emissiveIntensity: 0.15 })
+  );
+  body.position.y = 0;
+  body.scale.set(1, 1.25, 1);
+  g.add(body);
+  // Knot at bottom
+  const knot = new THREE.Mesh(
+    new THREE.ConeGeometry(0.06, 0.12, 4),
+    new THREE.MeshLambertMaterial({ color: 0x555555 })
+  );
+  knot.position.y = -0.4;
+  g.add(knot);
+  // String
+  const str = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.01, 0.01, 2.0, 3),
+    new THREE.MeshBasicMaterial({ color: 0x888888 })
+  );
+  str.position.y = -1.45;
+  g.add(str);
+  g.position.set(x, y, z);
+  scene.add(g);
+  balloons.push({ group: g, baseY: y, phase: Math.random() * Math.PI * 2, speed: 0.4 + Math.random() * 0.3 });
+  return g;
+}
+
+// Courtyard balloons (festive clusters)
+const cyMidZ = CZ + KD / 2 + CYD / 2;
+[
+  [CX - 3, 5.5, cyMidZ - 1], [CX + 3, 5.2, cyMidZ - 1],
+  [CX - 2, 6.0, cyMidZ + 2], [CX + 2, 5.8, cyMidZ + 2],
+  [CX, 6.5, cyMidZ],
+].forEach(([bx, by, bz], i) => {
+  makeBalloon(bx, by, bz, balloonColors[i % balloonColors.length]);
+});
+
+// Near road intersection
+[
+  [2, 4.5, 2], [-2, 4.8, -2], [3, 5.0, -3], [-3, 4.6, 3],
+].forEach(([bx, by, bz], i) => {
+  makeBalloon(bx, by, bz, balloonColors[(i + 3) % balloonColors.length]);
+});
+
+// Near chikorita house
+[
+  [CHIK_X - 2, 4.5, CHIK_Z + 2], [CHIK_X + 2, 4.8, CHIK_Z + 2],
+].forEach(([bx, by, bz], i) => {
+  makeBalloon(bx, by, bz, balloonColors[(i + 5) % balloonColors.length]);
+});
+
+// Near the trio
+makeBalloon(17, 4.5, -5, 0xfacc15);
+makeBalloon(19, 4.2, -4, 0xf472b6);
+
+// Near Pra (fence corner)
+makeBalloon(-39, 4.3, 31, 0xfb7185);
+makeBalloon(-37, 4.7, 29, 0xc084fc);
+
+// ── Bunting / triangular flag strings ──
+function makeBunting(x1, y1, z1, x2, y2, z2, numFlags = 10) {
+  const flagColors = [0xf472b6, 0xfacc15, 0x60a5fa, 0x34d399, 0xfb923c, 0xc084fc];
+  // Rope (thin cylinder)
+  const dx = x2 - x1, dy = y2 - y1, dz = z2 - z1;
+  const len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+  const rope = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.015, 0.015, len, 4),
+    new THREE.MeshBasicMaterial({ color: 0x888888 })
+  );
+  rope.position.set((x1 + x2) / 2, (y1 + y2) / 2, (z1 + z2) / 2);
+  rope.lookAt(x2, y2, z2);
+  rope.rotateX(Math.PI / 2);
+  scene.add(rope);
+  // Triangle flags along the rope
+  for (let i = 0; i < numFlags; i++) {
+    const t = (i + 0.5) / numFlags;
+    const fx = x1 + dx * t;
+    const fy = y1 + dy * t - Math.sin(t * Math.PI) * 0.3; // slight sag
+    const fz = z1 + dz * t;
+    const flagGeo = new THREE.BufferGeometry();
+    const verts = new Float32Array([0, 0, 0, 0.15, -0.35, 0, -0.15, -0.35, 0]);
+    flagGeo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+    flagGeo.computeVertexNormals();
+    const flag = new THREE.Mesh(flagGeo,
+      new THREE.MeshBasicMaterial({
+        color: flagColors[i % flagColors.length],
+        side: THREE.DoubleSide
+      })
+    );
+    flag.position.set(fx, fy, fz);
+    // Orient the flag to face outward from the rope direction
+    flag.lookAt(fx + dz, fy, fz - dx); // perpendicular
+    scene.add(flag);
+  }
+}
+
+// Bunting across courtyard gate
+makeBunting(CX - GHW - 0.3, CWH + 0.3, cyFZ, CX + GHW + 0.3, CWH + 0.3, cyFZ, 8);
+// Bunting inside courtyard walls
+makeBunting(CX - KW / 2 + 0.5, CWH - 0.5, CZ + KD / 2 + 1, CX - KW / 2 + 0.5, CWH - 0.5, cyFZ - 1, 7);
+makeBunting(CX + KW / 2 - 0.5, CWH - 0.5, CZ + KD / 2 + 1, CX + KW / 2 - 0.5, CWH - 0.5, cyFZ - 1, 7);
+// Bunting near road intersection
+makeBunting(-4, 3.8, -4, 4, 3.8, -4, 6);
+makeBunting(-4, 3.8, 4, 4, 3.8, 4, 6);
+
+// ── Birthday cake in courtyard ──
+{
+  const cakeX = CX + 1, cakeZ = cyMidZ;
+  const cakeG = new THREE.Group();
+  // Bottom tier
+  const tier1 = sh(new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.65, 0.35, 16),
+    new THREE.MeshLambertMaterial({ color: 0xfce4ec })));
+  tier1.position.y = 0.175;
+  cakeG.add(tier1);
+  // Top tier
+  const tier2 = sh(new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.45, 0.3, 16),
+    new THREE.MeshLambertMaterial({ color: 0xf8bbd0 })));
+  tier2.position.y = 0.50;
+  cakeG.add(tier2);
+  // Frosting ring
+  const frost = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.04, 6, 24),
+    new THREE.MeshLambertMaterial({ color: 0xffffff }));
+  frost.rotation.x = Math.PI / 2;
+  frost.position.y = 0.35;
+  cakeG.add(frost);
+  // Candles
+  const candleMat = new THREE.MeshLambertMaterial({ color: 0xfacc15 });
+  const flameMat = new THREE.MeshBasicMaterial({ color: 0xff8800 });
+  for (let c = 0; c < 5; c++) {
+    const ang = (c / 5) * Math.PI * 2;
+    const cx2 = Math.cos(ang) * 0.25, cz2 = Math.sin(ang) * 0.25;
+    const candle = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.2, 5), candleMat);
+    candle.position.set(cx2, 0.75, cz2);
+    cakeG.add(candle);
+    const flame = new THREE.Mesh(new THREE.SphereGeometry(0.035, 5, 4), flameMat);
+    flame.position.set(cx2, 0.87, cz2);
+    cakeG.add(flame);
+  }
+  // Table under the cake
+  const table = sh(new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.06, 16),
+    new THREE.MeshLambertMaterial({ color: 0x8b6f47 })));
+  table.position.y = 0.03;
+  cakeG.add(table);
+  // Table leg
+  const leg = sh(new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 0.8, 8),
+    new THREE.MeshLambertMaterial({ color: 0x6b4f37 })));
+  leg.position.y = -0.37;
+  cakeG.add(leg);
+
+  cakeG.position.set(cakeX, 0.8, cakeZ);
+  scene.add(cakeG);
+  addCir(cakeX, cakeZ, 0.9);
+}
+
+// ── Gift boxes near courtyard ──
+{
+  const giftMat1 = new THREE.MeshLambertMaterial({ color: 0xf472b6 });
+  const giftMat2 = new THREE.MeshLambertMaterial({ color: 0x60a5fa });
+  const giftMat3 = new THREE.MeshLambertMaterial({ color: 0xfacc15 });
+  const ribMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+
+  function makeGift(x, y, z, size, mat) {
+    const g = new THREE.Group();
+    const box = sh(new THREE.Mesh(new THREE.BoxGeometry(size, size, size), mat));
+    g.add(box);
+    // Ribbon cross
+    const rT = 0.03;
+    g.add(sh(new THREE.Mesh(new THREE.BoxGeometry(size + 0.02, rT, rT), ribMat)));
+    g.add(sh(new THREE.Mesh(new THREE.BoxGeometry(rT, rT, size + 0.02), ribMat)));
+    // Bow on top
+    const bow = sh(new THREE.Mesh(new THREE.SphereGeometry(size * 0.18, 6, 4), ribMat));
+    bow.position.y = size / 2 + size * 0.1;
+    g.add(bow);
+    g.position.set(x, y + size / 2, z);
+    g.rotation.y = Math.random() * 0.5;
+    scene.add(g);
+  }
+
+  makeGift(CX - 1.5, 0, cyMidZ + 1.5, 0.4, giftMat1);
+  makeGift(CX - 2.0, 0, cyMidZ + 0.8, 0.3, giftMat2);
+  makeGift(CX + 2.5, 0, cyMidZ - 0.5, 0.35, giftMat3);
+}
+
+//──────────────────────────────────────────────────────────────────
+// COURTYARD GATE & FAT LADY BLOCK
+//──────────────────────────────────────────────────────────────────
+// Iron gate that blocks entry until Fat Lady gives the password.
+// The gate collision rect and visual bars are removed when fatLadyPassed.
+const gateGroup = new THREE.Group();
+const gateBars = [];
+{
+  const gateH = 3.8, barR = 0.04, barSpacing = 0.35;
+  const gateW = GHW * 2; // full gate width
+  const barMat = new THREE.MeshLambertMaterial({ color: 0x3a3a3a });
+  const nBars = Math.floor(gateW / barSpacing);
+  for (let i = 0; i <= nBars; i++) {
+    const bx = -gateW / 2 + i * barSpacing;
+    const bar = sh(new THREE.Mesh(new THREE.CylinderGeometry(barR, barR, gateH, 6), barMat));
+    bar.position.set(bx, gateH / 2, 0);
+    gateGroup.add(bar);
+    gateBars.push(bar);
+  }
+  // Horizontal bars
+  [0.3, gateH * 0.5, gateH - 0.3].forEach(hy => {
+    const hbar = sh(new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, gateW + 0.1, 6), barMat));
+    hbar.rotation.z = Math.PI / 2;
+    hbar.position.set(0, hy, 0);
+    gateGroup.add(hbar);
+  });
+  // Decorative arch top
+  const arch = new THREE.Mesh(
+    new THREE.TorusGeometry(gateW / 2 * 0.4, 0.04, 6, 12, Math.PI),
+    barMat
+  );
+  arch.rotation.z = Math.PI;
+  arch.position.set(0, gateH, 0);
+  gateGroup.add(arch);
+
+  gateGroup.position.set(CX, 0, cyFZ);
+  scene.add(gateGroup);
+}
+
+// Gate collision rectangle
+const GATE_RECT_IDX = rectObs.length;
+addRec(CX - GHW, CX + GHW, cyFZ - 0.3, cyFZ + 0.3);
+
+function openGate() {
+  // Remove gate visuals
+  gateGroup.visible = false;
+  // Remove gate collision (set rect to zero-area so it doesn't block)
+  rectObs[GATE_RECT_IDX] = { x0: 0, x1: 0, z0: 0, z1: 0 };
+  console.log('[Gate] Courtyard gate opened!');
+}
+
+// If the player already passed in a previous session, open the gate immediately
+if (G.state.fatLadyPassed) {
+  openGate();
+}
+
+//──────────────────────────────────────────────────────────────────
+// PARTY LIGHTS (colored point lights for festive glow)
+//──────────────────────────────────────────────────────────────────
+{
+  const partyLightColors = [0xf472b6, 0xfacc15, 0x60a5fa, 0x34d399, 0xfb923c];
+  // Courtyard party lights
+  [
+    [CX - 3, 3.5, cyMidZ - 1], [CX + 3, 3.5, cyMidZ + 1],
+    [CX, 4.0, cyMidZ],
+  ].forEach(([px, py, pz], i) => {
+    const pl = new THREE.PointLight(partyLightColors[i % partyLightColors.length], 1.2, 12);
+    pl.position.set(px, py, pz);
+    scene.add(pl);
+  });
+  // Small fairy lights along courtyard walls
+  const fairyMat = new THREE.MeshBasicMaterial({ color: 0xffeeaa });
+  const fairyCount = 12;
+  for (let i = 0; i < fairyCount; i++) {
+    const t = (i + 0.5) / fairyCount;
+    const fz = CZ + KD / 2 + 0.5 + t * (CYD - 1);
+    [-1, 1].forEach(side => {
+      const fx = CX + side * (KW / 2 - 0.35);
+      const fairy = new THREE.Mesh(new THREE.SphereGeometry(0.06, 5, 4), fairyMat);
+      fairy.position.set(fx, CWH - 0.8 + Math.sin(t * Math.PI * 3) * 0.15, fz);
+      scene.add(fairy);
+    });
+  }
+  // Warm light near cake
+  const cakeLight = new THREE.PointLight(0xff9944, 0.8, 6);
+  cakeLight.position.set(CX + 1, 2.0, cyMidZ);
+  scene.add(cakeLight);
+}
+
+setProgress(75, 'Loading character\u2026');
+
+//──────────────────────────────────────────────────────────────────
+// ── In-World Birthday Board ──────────────────────────────────────
+{
+  const bCvs = document.createElement('canvas');
+  bCvs.width = 512; bCvs.height = 256;
+  const bCtx = bCvs.getContext('2d');
+  const grad = bCtx.createLinearGradient(0, 0, 0, 256);
+  grad.addColorStop(0, '#2d0a4e'); grad.addColorStop(1, '#4a1070');
+  bCtx.fillStyle = grad; bCtx.fillRect(0, 0, 512, 256);
+  bCtx.strokeStyle = '#f9a8d4'; bCtx.lineWidth = 7;
+  bCtx.strokeRect(5, 5, 502, 246);
+  bCtx.strokeStyle = 'rgba(255,255,255,0.25)'; bCtx.lineWidth = 2;
+  bCtx.strokeRect(12, 12, 488, 232);
+  bCtx.textAlign = 'center';
+  bCtx.fillStyle = '#ffe4f3'; bCtx.font = 'bold 28px Arial, sans-serif';
+  bCtx.fillText('\uD83C\uDF82 Happy Birthday', 256, 72);
+  bCtx.fillStyle = '#f9a8d4'; bCtx.font = 'bold 44px Arial, sans-serif';
+  bCtx.fillText('Anastasia!', 256, 132);
+  bCtx.fillStyle = '#ffffff'; bCtx.font = '30px Arial, sans-serif';
+  bCtx.fillText('\uD83C\uDF89 \uD83D\uDC96 \uD83E\uDD86 \uD83D\uDC9D \uD83C\uDF8A', 256, 185);
+  bCtx.fillStyle = '#c4b5fd'; bCtx.font = 'italic 16px Arial, sans-serif';
+  bCtx.fillText('Welcome to 24  \u2728', 256, 225);
+  const bTex   = new THREE.CanvasTexture(bCvs);
+  const woodMt = new THREE.MeshLambertMaterial({ color: 0x5c2f10 });
+  const backMt = new THREE.MeshLambertMaterial({ color: 0x7a4020 });
+  const boardMt = new THREE.MeshStandardMaterial({ map: bTex, roughness: 0.6, metalness: 0 });
+  const bdGrp  = new THREE.Group();
+  const boardFront = new THREE.Mesh(new THREE.BoxGeometry(4.0, 2.0, 0.12), [
+    backMt, backMt, backMt, backMt, boardMt, backMt
+  ]);
+  boardFront.position.y = 2.3;
+  bdGrp.add(boardFront);
+  [-1.7, 1.7].forEach(ox => {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 3.8, 8), woodMt);
+    post.position.set(ox, 1.2, 0);
+    bdGrp.add(post);
+  });
+  const brace = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.12, 0.15), woodMt);
+  brace.position.y = 3.45;
+  bdGrp.add(brace);
+  bdGrp.position.set(9, 0, 8);
+  bdGrp.rotation.y = -0.5 + Math.PI; // Rotated to face towards roads/castle
+  scene.add(bdGrp);
+  bdGrp.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+}
+
+// VRM MODEL
+//──────────────────────────────────────────────────────────────────
+let vrm = null;
+const loader = new GLTFLoader();
+loader.register(parser => new VRMLoaderPlugin(parser));
+
+loader.load(
+  './Anas-24.vrm', // always play as Anas regardless of login
+  (gltf) => {
+    vrm = gltf.userData.vrm;
+    if (!vrm) {
+      setProgress(100, '❌ Not a valid VRM file');
+      return;
+    }
+
+    VRMUtils.removeUnnecessaryJoints(gltf.scene);
+    VRMUtils.rotateVRM0(vrm);  // handles VRM 0.0 rotation (faces -Z → +Z)
+
+    scene.add(vrm.scene);
+    vrm.scene.position.set(0, 0, 0);
+    outlinePass.selectedObjects = [vrm.scene]; // enable outline on character
+
+    setProgress(100, 'Ready!');
+    setTimeout(async () => {
+      const overlay = document.getElementById('loading');
+      overlay.style.opacity = '0';
+      setTimeout(() => { overlay.style.display = 'none'; }, 600);
+
+      // Show birthday banner with fireworks
+      await window.showBirthdayBanner();
+      window.spawnConfetti(50);
+
+      // Show UI — controls panel hidden on mobile (virtual joystick used instead)
+      const isMob = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      if (!isMob) document.getElementById('controls').style.display = 'block';
+      document.getElementById('hud').style.display = 'block';
+      document.getElementById('progress-tracker').style.display = 'block';
+      document.getElementById('settings-btn').style.display = 'flex';
+      document.getElementById('hint').style.display = 'block';
+      setTimeout(() => { document.getElementById('hint').style.opacity = '0'; }, 4000);
+    }, 200);
+
+    console.log('VRM loaded:', vrm);
+  },
+  (prog) => {
+    if (prog.total > 0) {
+      const p = 40 + (prog.loaded / prog.total) * 55;
+      setProgress(p, `Loading model... ${Math.round(prog.loaded / prog.total * 100)}%`);
+    }
+  },
+  (err) => {
+    console.error(err);
+    setProgress(100, '❌ ' + err.message);
+    document.getElementById('loading-text').style.color = '#f55';
+  }
+);
+
+//──────────────────────────────────────────────────────────────────
+// CHIKORITA HOUSE (GLB)
+//──────────────────────────────────────────────────────────────────
+{
+  const houseLoader = new GLTFLoader();
+  houseLoader.load('./chikorita_house.glb', (gltf) => {
+    const house = gltf.scene;
+    const box = new THREE.Box3().setFromObject(house);
+    const hH = box.max.y - box.min.y;
+    if (hH > 0.01) { const sc = 5.0 / hH; house.scale.setScalar(sc); }
+    house.position.set(CHIK_X, 0, CHIK_Z);
+    house.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+    scene.add(house);
+    addRec(CHIK_X-3, CHIK_X+3, CHIK_Z-2.5, CHIK_Z+2.5);  // collision box for the house
+    console.log('Chikorita house loaded');
+  });
+}
+
+// HP CHARACTER NPCs (GLB)
+//──────────────────────────────────────────────────────────────────
+const npcs = [];          // indexed by NPC_DEFS order
+const npcLoader = new GLTFLoader();
+
+// NPC group IDs for bubble display + state tracking
+// 'trio' = Harry+Ron+Hermione (single conversation), rest are individual
+const NPC_GROUPS = {
+  0: { id:'trio',       bubbleName:'Harry, Ron & Hermione' },
+  1: { id:'trio',       bubbleName:'Harry, Ron & Hermione' },
+  2: { id:'trio',       bubbleName:'Harry, Ron & Hermione' },
+  3: { id:'fatLady',    bubbleName:'The Fat Lady' },
+  4: { id:'dumbledore', bubbleName:'Dumbledore' },
+  5: { id:'mcgonagall', bubbleName:'Prof. McGonagall' },
+  6: { id:'snape',      bubbleName:'Severus Snape' },
+  7: { id:'draco',      bubbleName:'Draco Malfoy' },
+  8: { id:'hagrid',     bubbleName:'Rubeus Hagrid' },
+  9: { id:'pra',        bubbleName:'Pra' },
+};
+
+const NPC_DEFS = [
+  // 0-2: The Golden Trio — together on the road near the castle path
+  { file:'harry_potter.glb',       x: 17.0, z:-3.0, rot: 0.3+Math.PI,  h:1.65, name:'Harry Potter' },
+  { file:'ron_weasley.glb',        x: 18.0, z:-2.7, rot:-0.2+Math.PI,  h:1.73, name:'Ron Weasley' },
+  { file:'hermione_granger.glb',   x: 16.2, z:-2.7, rot: 0.55+Math.PI, h:1.63, name:'Hermione Granger' },
+  // 3: The Fat Lady — beside courtyard gate (offset left so she doesn't block), facing players approaching from outside
+  { file:'the_fat_lady.glb',       x: CX-3.5, z: cyFZ+1.5, rot: Math.PI/2, h:1.60, name:'The Fat Lady' },
+  // 4: Dumbledore — standing in castle courtyard
+  { file:'albus_dumbledore.glb',   x: CX,   z: cyFZ-2, rot: Math.PI, h:1.85, name:'Albus Dumbledore' },
+  // 5: McGonagall — courtyard
+  { file:'professor_mcgonagall.glb', x: CX+3, z: cyFZ-4, rot: Math.PI+0.3, h:1.70, name:'Prof. McGonagall' },
+  // 6: Snape — lurking alone
+  { file:'severus_snape.glb',      x:-18,  z:-28,  rot: 0.8,  h:1.80, name:'Severus Snape' },
+  // 7: Draco — opposite side from trio
+  { file:'draco_malfoy.glb',       x:-15,  z: 16,  rot:-1.0,  h:1.68, name:'Draco Malfoy' },
+  // 8: Hagrid — at entrance of chikorita house
+  { file:'rubeus_hagrid.glb',      x: CHIK_X, z: CHIK_Z+4, rot: Math.PI, h:2.50, name:'Rubeus Hagrid' },
+  // 9: Pra — in the far northwest lawn corner near the perimeter fence
+  { file:'Pra-24.vrm',             x: -38, z: 30, rot: -0.5, h:1.72, name:'Pra', isVRM:true },
+];
+
+NPC_DEFS.forEach((def, idx) => {
+  const onLoaded = (model, clips) => {
+    // Auto-scale to character height
+    const TARGET_H = def.h || 1.65;
+    const box = new THREE.Box3().setFromObject(model);
+    const modelH = box.max.y - box.min.y;
+    if (modelH > 0.01) {
+      const sc = TARGET_H / modelH;
+      model.scale.setScalar(sc);
+    }
+
+    model.position.set(def.x, 0, def.z);
+    model.rotation.y = def.rot || 0;
+
+    model.traverse(child => {
+      if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; }
+    });
+
+    scene.add(model);
+    addCir(def.x, def.z, 0.6);
+
+    let mixer = null;
+    if (clips.length > 0) {
+      mixer = new THREE.AnimationMixer(model);
+      mixer.clipAction(clips[0]).play();
+    }
+
+    npcs[idx] = {
+      scene: model, mixer, clips, baseY: 0, facingY: def.rot || 0,
+      def, wx: def.x, wz: def.z,
+    };
+    console.log('NPC loaded:', def.file, 'h=' + TARGET_H);
+  };
+
+  if (def.isVRM) {
+    // Load VRM character (Pra)
+    const vrmL = new GLTFLoader();
+    vrmL.register(p => new VRMLoaderPlugin(p));
+    vrmL.load('./' + def.file, (gltf) => {
+      const pVrm = gltf.userData.vrm;
+      if (!pVrm) return;
+      VRMUtils.removeUnnecessaryJoints(gltf.scene);
+      VRMUtils.rotateVRM0(pVrm);
+
+      // Apply arm-down pose to Pra so they look natural
+      const pHum = pVrm.humanoid;
+      if (pHum) {
+        const lUA = pHum.getNormalizedBoneNode('leftUpperArm');
+        const rUA = pHum.getNormalizedBoneNode('rightUpperArm');
+        if (lUA) lUA.rotation.z = -1.30;
+        if (rUA) rUA.rotation.z =  1.30;
+        const lLA = pHum.getNormalizedBoneNode('leftLowerArm');
+        const rLA = pHum.getNormalizedBoneNode('rightLowerArm');
+        if (lLA) lLA.rotation.x = 0.12;
+        if (rLA) rLA.rotation.x = 0.12;
+      }
+      pVrm.update(0); // flush pose so it doesn't render as T-pose
+
+      const model = pVrm.scene;
+      onLoaded(model, gltf.animations || []);
+      if (npcs[idx]) npcs[idx].vrm = pVrm; // store for per-frame update
+    }, undefined, e => console.warn('Could not load Pra VRM:', e.message));
+  } else {
+    npcLoader.load('./' + def.file, (gltf) => {
+      onLoaded(gltf.scene, gltf.animations || []);
+    }, undefined, (err) => {
+      console.warn('Could not load NPC:', def.file, err.message);
+    });
+  }
+});
+
+//──────────────────────────────────────────────────────────────────
+// VISUAL-NOVEL DIALOGUE SYSTEM
+//──────────────────────────────────────────────────────────────────
+let dlgActive = false, dlgNpcIdx = -1;
+let dlgScript = [];    // array of dialogue steps: { speaker, text, choices?, password?, onChoice? }
+let dlgStep = 0;
+
+// Typewriter state
+let dlgStreaming = false;
+let dlgStreamInterval = null;
+const DLG_STREAM_MS = 24; // ms per character
+
+function _dlgStreamText(text, onDone) {
+  clearInterval(dlgStreamInterval);
+  dlgStreamInterval = null;
+  dlgStreaming = false;
+  if (!text) { dlgLineEl.textContent = ''; if (onDone) onDone(); return; }
+  dlgLineEl.textContent = '';
+  dlgStreaming = true;
+  let i = 0;
+  dlgStreamInterval = setInterval(() => {
+    i++;
+    dlgLineEl.textContent = text.slice(0, i);
+    if (i >= text.length) {
+      clearInterval(dlgStreamInterval); dlgStreamInterval = null;
+      dlgStreaming = false;
+      if (onDone) onDone();
+    }
+  }, DLG_STREAM_MS);
+}
+
+function _dlgSkipStream() {
+  if (!dlgStreaming) return;
+  clearInterval(dlgStreamInterval); dlgStreamInterval = null;
+  dlgStreaming = false;
+  const step = dlgScript[dlgStep];
+  if (step) { dlgLineEl.textContent = step.text || ''; }
+  _dlgShowActions(step);
+}
+
+let nearestNpcIdx = -1, nearestNpcDist = Infinity;
+const TALK_RANGE = 3.2;
+
+const dlgSpeakerEl = document.getElementById('dlg-speaker');
+const dlgLineEl    = document.getElementById('dlg-line');
+const dlgChoicesEl = document.getElementById('dlg-choices');
+const dlgPwWrap    = document.getElementById('dlg-password-wrap');
+const dlgPwInput   = document.getElementById('dlg-pw-input');
+const dlgPwErr     = document.getElementById('dlg-pw-err');
+const dlgHintEl    = document.getElementById('dlg-hint');
+const dialogueBox  = document.getElementById('dialogue-box');
+document.getElementById('dlg-close-btn').addEventListener('click', () => cancelConversation());
+const npcBubble    = document.getElementById('npc-bubble');
+const bubbleNameEl = document.getElementById('bubble-name');
+
+function startConversation(npcIdx) {
+  const group = NPC_GROUPS[npcIdx];
+  if (!group) return;
+
+  const script = buildConvoScript(group.id, npcIdx);
+  if (!script || script.length === 0) return;
+
+  dlgActive = true;
+  dlgNpcIdx = npcIdx;
+  dlgScript = script;
+  dlgStep   = 0;
+  npcBubble.style.display = 'none';
+  showCurrentStep();
+  dialogueBox.style.display = 'block';
+}
+
+function _dlgShowActions(step) {
+  if (!step) return;
+  if (step.choices) {
+    dlgHintEl.style.display = 'none';
+    dlgChoicesEl.innerHTML = '';
+    dlgChoicesEl.style.display = 'block';
+    step.choices.forEach((ch) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.textContent = ch.label;
+      btn.addEventListener('click', () => {
+        if (ch.onPick) ch.onPick();
+        if (ch.insertSteps) dlgScript.splice(dlgStep + 1, 0, ...ch.insertSteps);
+        dlgStep++;
+        showCurrentStep();
+      });
+      dlgChoicesEl.appendChild(btn);
+    });
+  } else if (step.password) {
+    dlgHintEl.style.display = 'none';
+    dlgPwWrap.style.display = 'block';
+    dlgPwInput.placeholder = step.password.placeholder || 'Type here...';
+    dlgPwInput.focus();
+    const dlgPwSubmit = document.getElementById('dlg-pw-submit');
+    dlgPwSubmit.style.display = 'inline-block';
+    const trySubmit = () => {
+      const val = dlgPwInput.value.trim();
+      if (step.password.validate(val)) {
+        dlgPwInput.removeEventListener('keydown', keyHandler);
+        dlgPwSubmit.removeEventListener('click', trySubmit);
+        dlgPwSubmit.style.display = 'none';
+        if (step.password.onSuccess) step.password.onSuccess();
+        dlgStep++; showCurrentStep();
+      } else {
+        dlgPwErr.textContent = step.password.failMsg || 'Wrong! Try again.';
+        dlgPwErr.style.display = 'block';
+        dlgPwInput.value = ''; dlgPwInput.focus();
+      }
+    };
+    const keyHandler = (e) => { if (e.key === 'Enter') trySubmit(); };
+    dlgPwInput.addEventListener('keydown', keyHandler);
+    dlgPwSubmit.addEventListener('click', trySubmit);
+  } else {
+    const mob = 'ontouchstart' in window;
+    dlgHintEl.textContent = (dlgStep < dlgScript.length - 1)
+      ? (mob ? 'tap to continue' : '[E] continue · [Q] close')
+      : (mob ? 'tap to finish'   : '[E] finish');
+    dlgHintEl.style.display = 'block';
+  }
+}
+
+function showCurrentStep() {
+  if (dlgStep >= dlgScript.length) { endConversation(); return; }
+  const step = dlgScript[dlgStep];
+
+  dlgSpeakerEl.textContent = step.speaker || '';
+
+  // Reset UI every step
+  dlgChoicesEl.style.display = 'none';
+  dlgChoicesEl.innerHTML = '';
+  dlgPwWrap.style.display = 'none';
+  dlgPwErr.style.display = 'none';
+  dlgPwInput.value = '';
+  document.getElementById('dlg-pw-submit').style.display = 'none';
+  dlgHintEl.style.display = 'none';
+
+  // Stream the text; reveal choices/hint/password once text is fully shown
+  _dlgStreamText(step.text || '', () => _dlgShowActions(step));
+}
+
+function advanceDialogue() {
+  if (!dlgActive) return;
+  // If text is still streaming, skip to end first
+  if (dlgStreaming) { _dlgSkipStream(); return; }
+  const step = dlgScript[dlgStep];
+  // Don't advance if waiting for choice or password
+  if (step?.choices || step?.password) return;
+  dlgStep++;
+  showCurrentStep();
+}
+
+function endConversation() {
+  // Called when the script naturally reaches the end — marks progress
+  const group = NPC_GROUPS[dlgNpcIdx];
+  if (group) {
+    if (group.id === 'pra') {
+      const req = ['trio','fatLady','dumbledore','mcgonagall','snape','draco','hagrid'];
+      const allDone = req.every(id => G.state.talkedTo[id]);
+      if (allDone) {
+        G.markTalked('pra');
+        G.state.praConvoComplete = true;
+        G.save();
+        window.spawnConfetti(80);
+      }
+    } else {
+      G.markTalked(group.id);
+    }
+  }
+  _dlgClose();
+  if (window._updateProgress) window._updateProgress();
+}
+
+function cancelConversation() {
+  // Called when player dismisses mid-way — NO progress saved
+  _dlgClose();
+}
+
+function _dlgClose() {
+  clearInterval(dlgStreamInterval); dlgStreamInterval = null; dlgStreaming = false;
+  dlgActive = false;
+  dlgNpcIdx = -1;
+  dlgScript = [];
+  dlgStep   = 0;
+  dialogueBox.style.display = 'none';
+  dlgChoicesEl.style.display = 'none';
+  dlgPwWrap.style.display = 'none';
+}
+
+function closeDialogue() { cancelConversation(); }
+
+// Bubble click handler
+window._bubbleClick = function() {
+  if (dlgActive) return;
+  if (nearestNpcIdx >= 0 && nearestNpcDist < TALK_RANGE) {
+    startConversation(nearestNpcIdx);
+  }
+};
+
+//──────────────────────────────────────────────────────────────────
+// CONVERSATION SCRIPTS (Visual Novel style)
+//──────────────────────────────────────────────────────────────────
+function buildConvoScript(groupId, npcIdx) {
+  // Each returns an array of { speaker, text, choices?, password? }
+  switch (groupId) {
+
+    case 'trio': {
+      let firstChoice = null;
+      return [
+        { speaker:'Harry Potter', text:'Hey, happy birthday Anastasia!' },
+        { speaker:'Anastasia', text:'', choices: [
+          { label:'Thank you!', onPick() { firstChoice = 'thanks'; } },
+          { label:'Woohoo!',    onPick() { firstChoice = 'woohoo'; } },
+        ]},
+        { speaker:'Hermione Granger',
+          get text() {
+            const base = 'Many many happy returns of the day Anastasia! A fellow Gryffindor\'s birthday is a day to celebrate!';
+            return firstChoice === 'woohoo' ? ('Woohoo indeed! ' + base) : base;
+          }
+        },
+        { speaker:'Ron Weasley', text:'Blimey! Wish you a bloody amazing birthday Ananas!' },
+        { speaker:'Anastasia', text:'', choices: [
+          { label:'Thank you guys! It means a lot' },
+          { label:'Hahahaha' },
+        ]},
+        { speaker:'Harry Potter', text:'Btw I had a dream last night where I hurried and broke into a house.' },
+        { speaker:'Anastasia', text:'', choices: [
+          { label:'Oh what happened?' },
+        ]},
+        { speaker:'Harry Potter', text:'I saw you and your friend laughing, haha' },
+        { speaker:'Harry Potter', text:'Enjoy your special day!' },
+      ];
+    }
+
+    case 'fatLady': {
+      return [
+        { speaker:'The Fat Lady', text:'Hey hey there birthday girl! What is the password? It is totally not your EA account name or anything!' },
+        { speaker:'Anastasia', text:'', password: {
+          placeholder: 'Enter the password...',
+          validate: (v) => v.toLowerCase() === 'ana5si',
+          failMsg: 'Boohoo, try again!',
+          onSuccess() { G.state.fatLadyPassed = true; G.save(); if (typeof openGate === 'function') openGate(); },
+        }},
+        { speaker:'The Fat Lady', text:'Yes! Happy birthday, sweet girl!' },
+      ];
+    }
+
+    case 'dumbledore': {
+      return [
+        { speaker:'Albus Dumbledore', text:'Anastasia! A very happy birthday to you! (Dumbledore said calmly)' },
+        { speaker:'Anastasia', text:'', choices: [
+          { label:'Thank you' },
+          { label:'Yeah very calm indeed' },
+        ]},
+        { speaker:'Albus Dumbledore', text:'Congrats on everything you have done over the years, and especially last year. Wish you a great upcoming one.' },
+      ];
+    }
+
+    case 'mcgonagall': {
+      return [
+        { speaker:'Prof. McGonagall', text:'Oh dear, look at you, very beautiful!' },
+        { speaker:'Prof. McGonagall', text:'Could you please say my name?' },
+        { speaker:'Anastasia', text:'', choices: [
+          { label:'McGonagall' },
+        ]},
+        { speaker:'Prof. McGonagall', text:'Adorable! Wish you a birthday just as adorable Anas!' },
+        { speaker:'Anastasia', text:'', choices: [
+          { label:'Thank you' },
+          { label:'Yeah thank you' },
+        ]},
+      ];
+    }
+
+    case 'snape': {
+      let snapeChoice = null;
+      return [
+        { speaker:'Severus Snape', text:'Turn to chapter number 24.' },
+        { speaker:'Anastasia', text:'', choices: [
+          { label:'...',
+            onPick() { snapeChoice = 'dots'; },
+            insertSteps: [
+              { speaker:'Severus Snape', text:'Happy birthday, have a decent one.' },
+            ]
+          },
+          { label:'I wanna play Exploding Snape',
+            onPick() { snapeChoice = 'explode'; },
+            insertSteps: [
+              { speaker:'Severus Snape', text:'Shut your mouth.' },
+              { speaker:'Severus Snape', text:'Happy birthday, have a decent one.' },
+              { speaker:'Anastasia', text:'', choices: [{ label:'Thank you, haha' }] },
+            ]
+          },
+        ]},
+      ];
+    }
+
+    case 'draco': {
+      return [
+        { speaker:'Draco Malfoy', text:'Hm, it\'s your birthday huh?' },
+        { speaker:'Anastasia', text:'', choices: [
+          { label:'Yes' },
+        ]},
+        { speaker:'Draco Malfoy', text:'Happy birthday, even though your house is gonna lose to mine this year.' },
+        { speaker:'Draco Malfoy', text:'My father will hear about your birthday.' },
+        { speaker:'Anastasia', text:'', choices: [
+          { label:'Thanks, haha' },
+          { label:'Thank I guess lil bro' },
+        ]},
+      ];
+    }
+
+    case 'hagrid': {
+      return [
+        { speaker:'Rubeus Hagrid', text:"'Appy birthday, my dear!" },
+        { speaker:'Rubeus Hagrid', text:"'Ave an amazin' twenty-four!" },
+        { speaker:'Anastasia', text:'', choices: [
+          { label:'Thank you' },
+          { label:'Thank ya!' },
+        ]},
+        { speaker:'Rubeus Hagrid', text:"See my new house? D'ya like it?" },
+        { speaker:'Anastasia', text:'', choices: [
+          { label:'Yes!' },
+          { label:'Hmm...' },
+        ]},
+        { speaker:'Rubeus Hagrid', text:"We all love yeh here! 'Ave an awesome day, Anas!" },
+      ];
+    }
+
+    case 'pra': {
+      // Check if she's talked to everyone else first
+      const requiredIds = ['trio','fatLady','dumbledore','mcgonagall','snape','draco','hagrid'];
+      const notTalked = requiredIds.filter(id => !G.state.talkedTo[id]);
+      if (notTalked.length > 0) {
+        // Build list of remaining character names
+        const nameMap = {
+          trio:'Harry, Ron & Hermione', fatLady:'The Fat Lady', dumbledore:'Dumbledore',
+          mcgonagall:'McGonagall', snape:'Snape', draco:'Draco', hagrid:'Hagrid',
+        };
+        const remaining = notTalked.map(id => nameMap[id]).join(', ');
+        return [
+          { speaker:'Pra', text: 'Hallo Anassi! You\'re still yet to talk to ' + remaining + '. Come back when you finish doing it, idiot! 💗' },
+          { speaker:'Anastasia', text:'', choices: [
+            { label:'I am your idiot',
+              insertSteps: [{ speaker:'Pra', text:'You absolutely are 😌💞' }] },
+            { label:'You are the idiot',
+              insertSteps: [{ speaker:'Pra', text:'I absolutely am 😌💞' }] },
+          ]},
+        ];
+      }
+      // Full conversation after talking to everyone
+      return [
+        { speaker:'Pra', text:'There you are! Happiest birthday, Anastasia! 💖 I hope this little adventure has been more special than a giftcard, haha.' },
+        { speaker:'Pra', text:'Congratulations on everything you\'ve done over the years, and especially in the last year, babie. Personally, professionally, romantically — it has been a big year for you!' },
+        { speaker:'Pra', text:'You\'ve gotten through everything like the strong woman that you are 🫂🧸 I\'m positive you\'re ready for even bigger things going forward. (Even if u don\'t think you are!).' },
+        { speaker:'Pra', text:'I love you, sweetheart! Welcome to 24 — have a great one! 💕' },
+        { speaker:'Pra', text:'' , choices: [{ label: 'This is amazing, thank you 💖', insertSteps: [{ speaker:'Pra', text:'Ehe 💝' }] }, { label:'You\'re such an idiot. Thank you', insertSteps: [{ speaker:'Pra', text:'Ehe 💝' }] }] },
+      ];
+    }
+
+    default: return null;
+  }
+}
+
+//──────────────────────────────────────────────────────────────────
+// INPUT
+//──────────────────────────────────────────────────────────────────
+const keys = {};
+const EMOTES = new Set(['dance','wave','think']);
+
+window.addEventListener('keydown', e => {
+  keys[e.code] = true;
+  if (!e.repeat) {
+    const tog = (code, state) => {
+      if (e.code !== code) return;
+      animState = (animState === state) ? 'idle' : state;
+      animTime  = 0;
+    };
+    tog('KeyF','dance'); tog('KeyV','wave'); tog('KeyT','think');
+
+    // Dialogue keys
+    if (e.code === 'KeyE') {
+      if (dlgActive) advanceDialogue();
+      else if (nearestNpcIdx >= 0 && nearestNpcDist < TALK_RANGE) startConversation(nearestNpcIdx);
+    }
+    if (e.code === 'KeyQ' && dlgActive) closeDialogue();
+
+    if (e.code === 'Space' && !isJumping) {
+      isJumping = true; jumpVel = JUMP_FORCE;
+      if (EMOTES.has(animState)) animState = 'idle';
+      e.preventDefault();
+    }
+  }
+});
+window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+// Mouse camera
+let isDragging = false, lastMX = 0, lastMY = 0;
+let camYaw = Math.PI, camPitch = 0.18, camDist = 5;
+
+renderer.domElement.addEventListener('mousedown', e => {
+  isDragging = true; lastMX = e.clientX; lastMY = e.clientY;
+});
+window.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  camYaw   -= (e.clientX - lastMX) * 0.005;
+  camPitch  = Math.max(-0.55, Math.min(0.5, camPitch + (e.clientY - lastMY) * 0.003));
+  lastMX = e.clientX; lastMY = e.clientY;
+});
+window.addEventListener('mouseup', () => isDragging = false);
+window.addEventListener('wheel', e => {
+  camDist = Math.max(2, Math.min(14, camDist + e.deltaY * 0.01));
+}, { passive: true });
+
+// Touch support for camera — ONLY on the dedicated right-side zone for touch devices
+// (Desktop mouse drag stays on the renderer canvas)
+const camTouchZone = document.getElementById('cam-touch-zone');
+let camTouchId = null;
+camTouchZone.addEventListener('touchstart', e => {
+  if (camTouchId !== null) return; // only track one finger for camera
+  const t = e.changedTouches[0];
+  camTouchId = t.identifier;
+  lastMX = t.clientX; lastMY = t.clientY;
+  e.preventDefault();
+}, { passive: false });
+camTouchZone.addEventListener('touchmove', e => {
+  for (const t of e.changedTouches) {
+    if (t.identifier !== camTouchId) continue;
+    camYaw  -= (t.clientX - lastMX) * 0.006;
+    camPitch = Math.max(-0.55, Math.min(0.5, camPitch + (t.clientY - lastMY) * 0.004));
+    lastMX = t.clientX; lastMY = t.clientY;
+  }
+  e.preventDefault();
+}, { passive: false });
+const camTouchEnd = (e) => {
+  for (const t of e.changedTouches) {
+    if (t.identifier === camTouchId) camTouchId = null;
+  }
+};
+camTouchZone.addEventListener('touchend', camTouchEnd);
+camTouchZone.addEventListener('touchcancel', camTouchEnd);
+
+//──────────────────────────────────────────────────────────────────
+// MOBILE CONTROLS (virtual joystick + buttons)
+//──────────────────────────────────────────────────────────────────
+const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+let joyVX = 0, joyVZ = 0, mobileRunning = false;
+
+if (isMobile) {
+  document.getElementById('mobile-controls').style.display = 'block';
+  document.getElementById('mobile-btns').style.display = 'flex';
+  document.getElementById('cam-touch-zone').style.display = 'block';
+  // Hide keyboard controls panel on mobile/tablet
+  document.getElementById('controls').style.display = 'none !important';
+
+  const jZone = document.getElementById('joystick-zone');
+  const jKnob = document.getElementById('joystick-knob');
+  let jActive = false, jCX = 0, jCY = 0;
+
+  jZone.addEventListener('touchstart', e => {
+    e.preventDefault();
+    jActive = true;
+    const r = jZone.getBoundingClientRect();
+    jCX = r.left + r.width / 2;
+    jCY = r.top + r.height / 2;
+  }, { passive: false });
+
+  jZone.addEventListener('touchmove', e => {
+    if (!jActive) return;
+    e.preventDefault();
+    const t = e.touches[0];
+    let dx = t.clientX - jCX, dy = t.clientY - jCY;
+    const maxR = 50;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist > maxR) { dx = dx / dist * maxR; dy = dy / dist * maxR; }
+    jKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+    // Normalize to -1..1
+    joyVX = dx / maxR;
+    joyVZ = dy / maxR;
+  }, { passive: false });
+
+  const jEnd = () => {
+    jActive = false;
+    joyVX = 0; joyVZ = 0;
+    jKnob.style.transform = 'translate(-50%, -50%)';
+  };
+  jZone.addEventListener('touchend', jEnd);
+  jZone.addEventListener('touchcancel', jEnd);
+
+  // Jump button
+  document.getElementById('m-jump').addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (!isJumping) { isJumping = true; jumpVel = JUMP_FORCE; }
+  }, { passive: false });
+
+  // Run toggle button
+  const mRunBtn = document.getElementById('m-run');
+  mRunBtn.addEventListener('touchstart', e => {
+    e.preventDefault();
+    mobileRunning = !mobileRunning;
+    mRunBtn.classList.toggle('active', mobileRunning);
+  }, { passive: false });
+}
+
+// Touch-to-advance dialogue
+window._dlgTapAdvance = function() {
+  if (dlgActive) advanceDialogue();
+};
+
+//──────────────────────────────────────────────────────────────────
+// PROGRESS TRACKER
+//──────────────────────────────────────────────────────────────────
+const ptListEl = document.getElementById('pt-list');
+const PT_ITEMS = [
+  { id:'trio',       label:'Harry, Ron & Hermione' },
+  { id:'fatLady',    label:'The Fat Lady' },
+  { id:'dumbledore', label:'Dumbledore' },
+  { id:'mcgonagall', label:'McGonagall' },
+  { id:'snape',      label:'Snape' },
+  { id:'draco',      label:'Draco' },
+  { id:'hagrid',     label:'Hagrid' },
+  { id:'pra',        label:'Pra' },
+];
+
+function updateProgressTracker() {
+  ptListEl.innerHTML = '';
+  PT_ITEMS.forEach(it => {
+    const done = G.state.talkedTo[it.id];
+    const div = document.createElement('div');
+    div.className = 'pt-item' + (done ? ' done' : '');
+    div.innerHTML = `<span class="pt-check">${done ? '✅' : '⬜'}</span> ${it.label}`;
+    ptListEl.appendChild(div);
+  });
+}
+// Update on load and expose globally for after conversations end
+updateProgressTracker();
+window._updateProgress = updateProgressTracker;
+
+// ── Settings panel logic ─────────────────────────────────────────
+{
+  const settingsBtn   = document.getElementById('settings-btn');
+  const settingsPanel = document.getElementById('settings-panel');
+  settingsBtn.addEventListener('click', () => {
+    settingsPanel.style.display = settingsPanel.style.display === 'block' ? 'none' : 'block';
+  });
+  // Close panel when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!settingsPanel.contains(e.target) && e.target !== settingsBtn)
+      settingsPanel.style.display = 'none';
+  }, true);
+  document.getElementById('btn-reset-progress').addEventListener('click', () => {
+    if (!confirm('Reset ALL progress? This will re-close the gate and clear all conversations.')) return;
+    G.state.talkedTo      = {};
+    G.state.fatLadyPassed = false;
+    G.state.praConvoComplete = false;
+    G.save();
+    settingsPanel.style.display = 'none';
+    if (window._updateProgress) window._updateProgress();
+    // Re-close the gate
+    if (typeof gateGroup !== 'undefined' && gateGroup) {
+      gateGroup.visible = true;
+      rectObs[GATE_RECT_IDX] = { x0: CX - GHW, x1: CX + GHW, z0: cyFZ - 0.3, z1: cyFZ + 0.3 };
+    }
+  });
+}
+
+//──────────────────────────────────────────────────────────────────
+// CHARACTER STATE
+//──────────────────────────────────────────────────────────────────
+let animState  = 'idle';
+let animTime   = 0;
+let isJumping  = false;
+let jumpVel    = 0;
+let charY      = 0;
+let charRotY   = 0;
+
+const JUMP_FORCE = 7;
+const GRAVITY    = -18;
+const WALK_SPEED = 2.6;
+const RUN_SPEED  = 5.5;
+
+const charPos = new THREE.Vector3(0, 0, 0);
+
+// Expression state
+let blinkTimer = 2.5+Math.random()*2, blinkPhase = 0, blinkT = 0;
+let exprVals = {};
+
+//──────────────────────────────────────────────────────────────────
+// BONE HELPERS
+//──────────────────────────────────────────────────────────────────
+function getBone(name) {
+  if (!vrm) return null;
+  return vrm.humanoid.getNormalizedBoneNode(name);
+}
+
+function setBone(name, x, y, z) {
+  const b = getBone(name);
+  if (b) { b.rotation.x = x; b.rotation.y = y; b.rotation.z = z; }
+}
+
+// ARM_DOWN: z-rotation magnitude that lowers the upper arm from T-pose to hanging at sides.
+// LEFT  arm DOWN = z = -ARM_DOWN   (positive z raises left  arm UP)
+// RIGHT arm DOWN = z = +ARM_DOWN   (negative z raises right arm UP)
+const ARM_DOWN = 1.30;
+
+function resetBones() {
+  [
+    'hips','spine','chest','upperChest','neck','head',
+    'leftShoulder','rightShoulder',
+    'leftUpperArm','leftLowerArm','leftHand',
+    'rightUpperArm','rightLowerArm','rightHand',
+    'leftUpperLeg','leftLowerLeg','leftFoot',
+    'rightUpperLeg','rightLowerLeg','rightFoot',
+  ].forEach(n => setBone(n, 0, 0, 0));
+}
+
+// Set arms into the natural "resting at sides" position
+function armsAtSides(leftXExtra = 0, rightXExtra = 0) {
+  setBone('leftUpperArm',   leftXExtra,  0, -ARM_DOWN);
+  setBone('rightUpperArm',  rightXExtra, 0,  ARM_DOWN);
+  setBone('leftLowerArm',   0.12, 0, 0);
+  setBone('rightLowerArm',  0.12, 0, 0);
+}
+
+//──────────────────────────────────────────────────────────────────
+// ANIMATIONS (procedural)
+//──────────────────────────────────────────────────────────────────
+
+function animIdle(t) {
+  const breath = Math.sin(t * 1.2) * 0.015;
+  setBone('spine', breath * 0.5, 0, 0);
+  setBone('chest', breath, 0, 0);
+  setBone('neck', 0.04, 0, 0);
+  setBone('head', Math.sin(t * 0.25) * 0.012, Math.sin(t * 0.18) * 0.015, 0);
+  // Arms hanging naturally at sides with gentle sway
+  setBone('leftUpperArm',   Math.sin(t * 0.8) * 0.02, 0, -ARM_DOWN - Math.sin(t * 1.2) * 0.01);
+  setBone('rightUpperArm',  Math.sin(t * 0.8) * 0.02, 0,  ARM_DOWN + Math.sin(t * 1.2) * 0.01);
+  setBone('leftLowerArm',   0.12, 0, 0);
+  setBone('rightLowerArm',  0.12, 0, 0);
+}
+
+function animWalk(t, freq) {
+  const s = Math.sin(t * freq);
+  const c = Math.cos(t * freq);
+
+  // Hip sway
+  setBone('hips',  0, s * 0.05, 0);
+  // Spine/Chest lean slightly forward
+  const lean = freq > 7 ? 0.10 : 0.04;
+  setBone('spine', lean, 0, s * 0.025);
+  setBone('chest', lean * 0.6, 0, 0);
+  setBone('neck', 0.04, 0, 0);
+
+  // Legs swing
+  setBone('leftUpperLeg',   s * 0.50, 0,  0.04);
+  setBone('rightUpperLeg', -s * 0.50, 0, -0.04);
+  setBone('leftLowerLeg',   Math.max(0, -c) * 0.50, 0, 0);
+  setBone('rightLowerLeg',  Math.max(0,  c) * 0.50, 0, 0);
+  setBone('leftFoot',  -Math.max(0, -c) * 0.20, 0, 0);
+  setBone('rightFoot', -Math.max(0,  c) * 0.20, 0, 0);
+
+  // Arms swing from the down position (x changes = forward/backward swing)
+  const armSwing = freq > 7 ? 0.42 : 0.28;
+  setBone('leftUpperArm',  -s * armSwing, 0, -ARM_DOWN);
+  setBone('rightUpperArm',  s * armSwing, 0,  ARM_DOWN);
+  setBone('leftLowerArm',   0.10 + Math.max(0, -c) * 0.22, 0, 0);
+  setBone('rightLowerArm',  0.10 + Math.max(0,  c) * 0.22, 0, 0);
+}
+
+function animJump(upPhase) {
+  if (upPhase) {
+    // Arms fly outward/up on take-off (z near 0 = T-pose spread = arms out wide)
+    setBone('leftUpperArm',  -0.60, 0, -0.55);
+    setBone('rightUpperArm', -0.60, 0,  0.55);
+    setBone('leftLowerArm',   0.30, 0, 0);
+    setBone('rightLowerArm',  0.30, 0, 0);
+    setBone('leftUpperLeg',  -0.28, 0, 0.06);
+    setBone('rightUpperLeg', -0.28, 0, -0.06);
+    setBone('leftLowerLeg',   0.55, 0, 0);
+    setBone('rightLowerLeg',  0.55, 0, 0);
+    setBone('spine', -0.08, 0, 0);
+  } else {
+    // Arms spread for balance on the way down
+    setBone('leftUpperArm',  -0.30, 0, -0.45);
+    setBone('rightUpperArm', -0.30, 0,  0.45);
+    setBone('leftUpperLeg',   0.20, 0, 0);
+    setBone('rightUpperLeg',  0.20, 0, 0);
+    setBone('leftLowerLeg',   0.35, 0, 0);
+    setBone('rightLowerLeg',  0.35, 0, 0);
+    setBone('spine', 0.05, 0, 0);
+  }
+}
+
+function animDance(t) {
+  const s3  = Math.sin(t * 3.0);
+  const s2  = Math.sin(t * 2.1);
+  const s15 = Math.sin(t * 1.6);
+  const c25 = Math.cos(t * 2.5);
+  const ap  = t * 2.5;
+  const sin_ap = Math.sin(ap), cos_ap = Math.cos(ap);
+
+  // Hip groove
+  setBone('hips',  0, s3 * 0.18, s2 * 0.10);
+  // Body wave
+  setBone('spine', s15 * 0.10, s3 * 0.08, 0);
+  setBone('chest', s15 * 0.07, -s3 * 0.06, 0);
+  // Head nod / look
+  setBone('neck', s15 * 0.06, c25 * 0.12, 0);
+  setBone('head', s3 * 0.06,  c25 * 0.10, 0);
+
+  // Arms groove — start from ARM_DOWN base, add lots of expressive movement
+  setBone('leftUpperArm',  sin_ap * 0.65 - 0.20, 0, -(ARM_DOWN - 0.45 + cos_ap * 0.35));
+  setBone('rightUpperArm', -sin_ap * 0.65 - 0.20, 0,  (ARM_DOWN - 0.45 + cos_ap * 0.35));
+  setBone('leftLowerArm',  Math.max(0, sin_ap * 0.55 + 0.25), 0, 0);
+  setBone('rightLowerArm', Math.max(0, -sin_ap * 0.55 + 0.25), 0, 0);
+  setBone('leftHand',  0, 0, sin_ap * 0.30);
+  setBone('rightHand', 0, 0, sin_ap * 0.30);
+
+  // Leg bounce
+  setBone('leftUpperLeg',   s3 * 0.14, 0,  0.05);
+  setBone('rightUpperLeg', -s3 * 0.14, 0, -0.05);
+  setBone('leftLowerLeg',   Math.max(0, -s3) * 0.22, 0, 0);
+  setBone('rightLowerLeg',  Math.max(0,  s3) * 0.22, 0, 0);
+}
+
+function animWave(t) {
+  animIdle(t);  // base idle pose for body/legs
+  // Override: right arm raised beside head, hand waves up-down (x rotation)
+  const wv = Math.sin(t * 5.0) * 0.40;
+  // Right arm UP = negative z (z = -1.0 ≈ arm raised to ~ear height)
+  setBone('rightUpperArm',  0.05, 0, -1.0);
+  // Elbow bent so forearm points upward
+  setBone('rightLowerArm',  1.15, 0, 0);
+  // Hand nods forward/back around x axis = looks like a real vertical wave
+  setBone('rightHand', wv * 0.55, 0, 0);
+  // Head looks slightly toward the waving hand
+  setBone('neck', 0.02, -0.18, 0);
+  setBone('head', 0.04, -0.22, 0);
+}
+
+function animThink(t) {
+  animIdle(t);
+  const nod = Math.sin(t * 0.8) * 0.05;
+  // Right upper arm: swing forward+out so forearm can reach chin
+  setBone('rightUpperArm', -0.28, 0.10, -(ARM_DOWN - 1.85));  // z ≈ +0.55 (arm lifts outward)
+  setBone('rightLowerArm',  1.60, 0, 0);   // elbow bent — forearm points at chin
+  setBone('rightHand',     -0.18, 0, 0);
+  // Left arm crosses loosely at waist
+  setBone('leftUpperArm',   0.20, 0.15, -(ARM_DOWN - 0.55)); // z ≈ -0.75
+  setBone('leftLowerArm',   0.70, 0, 0);
+  setBone('leftHand',       0, 0, 0);
+  // Thoughtful head tilt
+  setBone('head',  nod, 0.18 + Math.sin(t * 0.5) * 0.06, 0.12);
+  setBone('neck',  nod * 0.5, 0.14, 0.08);
+}
+
+//──────────────────────────────────────────────────────────────────
+// UTILS
+//──────────────────────────────────────────────────────────────────
+function lerpAngle(a, b, t) {
+  let d = b - a;
+  while (d >  Math.PI) d -= Math.PI * 2;
+  while (d < -Math.PI) d += Math.PI * 2;
+  return a + d * Math.min(1, t);
+}
+
+const stateLabels = {
+  idle:  'Idle',
+  walk:  'Walking',
+  run:   'Running 🏃',
+  dance: 'Dancing 🎵',
+  wave:  'Waving 👋',
+  think: 'Thinking 🤔',
+};
+
+//──────────────────────────────────────────────────────────────────
+// EXPRESSION HELPERS
+//──────────────────────────────────────────────────────────────────
+// Try both VRM 0.x and VRM 1.x expression name variants
+const EXPR_ALIAS = {
+  happy:     ['happy', 'joy'],
+  sad:       ['sad', 'sorrow'],
+  angry:     ['angry'],
+  surprised: ['surprised', 'fun'],
+  neutral:   ['neutral'],
+  blink:     ['blink'],
+  aa:        ['aa', 'a'],
+  oh:        ['oh', 'o'],
+};
+
+function setExpr(key, value) {
+  if (!vrm?.expressionManager) return;
+  const names = EXPR_ALIAS[key] || [key];
+  for (const n of names) {
+    try { vrm.expressionManager.setValue(n, value); } catch(_) {}
+  }
+}
+
+// Smoothly transition expressions
+function updateExpressions(dt) {
+  if (!vrm?.expressionManager) return;
+
+  // Choose target expression based on state
+  let target = 'neutral';
+  if (animState === 'dance')  target = 'happy';
+  if (animState === 'wave')   target = 'happy';
+  if (animState === 'think')  target = 'neutral';
+  if (isJumping)              target = 'surprised';
+
+  // Smooth all expression values toward targets
+  const speed = 3.0;
+  for (const key of Object.keys(EXPR_ALIAS)) {
+    if (key === 'blink' || key === 'aa' || key === 'oh') continue;
+    const want  = (key === target) ? 1.0 : 0.0;
+    const cur   = exprVals[key] || 0;
+    const next  = cur + (want - cur) * Math.min(1, speed * dt);
+    exprVals[key] = next;
+    setExpr(key, next);
+  }
+}
+
+// Autonomous blinking
+function updateBlink(dt) {
+  if (!vrm?.expressionManager) return;
+
+  blinkTimer -= dt;
+  if (blinkTimer <= 0 && blinkPhase === 0) {
+    blinkPhase = 1; blinkT = 0;          // start closing
+  }
+
+  if (blinkPhase === 1) {
+    blinkT += dt / 0.065;                // close in 65 ms
+    const v = Math.min(1, blinkT);
+    setExpr('blink', v);
+    if (blinkT >= 1) { blinkPhase = 2; blinkT = 0; }
+  } else if (blinkPhase === 2) {
+    blinkT += dt / 0.07;                 // open in 70 ms
+    const v = 1 - Math.min(1, blinkT);
+    setExpr('blink', v);
+    if (blinkT >= 1) {
+      blinkPhase = 0;
+      blinkTimer = 2.5 + Math.random() * 3.5;  // next blink in 2.5-6 s
+      setExpr('blink', 0);
+    }
+  }
+}
+
+// Mouth movement when dancing (subtle lip-sync simulation)
+function updateMouth(t) {
+  if (!vrm?.expressionManager) return;
+  if (animState === 'dance') {
+    const mouth = (Math.sin(t * 4.3) * 0.5 + 0.5) * 0.45;
+    setExpr('aa', mouth);
+  } else {
+    setExpr('aa', 0);
+  }
+}
+
+//──────────────────────────────────────────────────────────────────
+// MAIN LOOP
+//──────────────────────────────────────────────────────────────────
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  animTime += dt;
+
+  if (vrm) {
+    //── Movement (blocked during dialogue) ─────────────────
+    if (!dlgActive) {
+    const running = keys['ShiftLeft'] || keys['ShiftRight'] || mobileRunning;
+    const speed   = running ? RUN_SPEED : WALK_SPEED;
+
+    const fwd   = new THREE.Vector3(-Math.sin(camYaw), 0, -Math.cos(camYaw));
+    const right = new THREE.Vector3( Math.cos(camYaw), 0, -Math.sin(camYaw));
+
+    let mx = 0, mz = 0;
+    if (keys['KeyW'] || keys['ArrowUp'])    { mx += fwd.x;   mz += fwd.z; }
+    if (keys['KeyS'] || keys['ArrowDown'])  { mx -= fwd.x;   mz -= fwd.z; }
+    if (keys['KeyA'] || keys['ArrowLeft'])  { mx -= right.x; mz -= right.z; }
+    if (keys['KeyD'] || keys['ArrowRight']) { mx += right.x; mz += right.z; }
+
+    // Mobile joystick input
+    if (isMobile && (Math.abs(joyVX) > 0.1 || Math.abs(joyVZ) > 0.1)) {
+      mx += fwd.x * (-joyVZ) + right.x * joyVX;
+      mz += fwd.z * (-joyVZ) + right.z * joyVX;
+    }
+
+    const isMoving = mx !== 0 || mz !== 0;
+
+    // Cancel emotes when moving
+    if (isMoving && EMOTES.has(animState)) animState = 'idle';
+
+    if (isMoving) {
+      const len = Math.sqrt(mx * mx + mz * mz);
+      charPos.x += (mx / len) * speed * dt;
+      charPos.z += (mz / len) * speed * dt;
+      charRotY   = lerpAngle(charRotY, Math.atan2(mx / len, mz / len), 12 * dt);
+      if (!EMOTES.has(animState) && !isJumping) {
+        animState = running ? 'run' : 'walk';
+      }
+    } else {
+      if (animState === 'walk' || animState === 'run') animState = 'idle';
+    }
+
+    // Collision resolution — keep character inside world and out of obstacles
+    resolvePos(charPos);
+    } // end !dlgActive
+
+    //── Jump physics ────────────────────────────────────────
+    if (isJumping) {
+      charY   += jumpVel * dt;
+      jumpVel += GRAVITY * dt;
+      if (charY <= 0) { charY = 0; isJumping = false; jumpVel = 0; }
+    }
+
+    vrm.scene.position.set(charPos.x, charY, charPos.z);
+    vrm.scene.rotation.y = charRotY;
+
+    //── Apply animation ─────────────────────────────────────
+    resetBones();
+    if (isJumping) {
+      animJump(jumpVel > 0);
+    } else {
+      switch (animState) {
+        case 'idle':  animIdle(animTime);       break;
+        case 'walk':  animWalk(animTime, 5.0);  break;
+        case 'run':   animWalk(animTime, 9.0);  break;
+        case 'dance': animDance(animTime);      break;
+        case 'wave':  animWave(animTime);       break;
+        case 'think': animThink(animTime);      break;
+      }
+    }
+
+    //── Expressions ─────────────────────────────────────────
+    updateExpressions(dt);
+    updateBlink(dt);
+    updateMouth(animTime);
+
+    vrm.update(dt);
+    // Update Pra's VRM so pose is maintained each frame
+    { const praE = npcs[9]; if (praE && praE.vrm) praE.vrm.update(dt); }
+
+    //── HUD ─────────────────────────────────────────────────
+    const label = isJumping ? 'Jumping ✈️' : (stateLabels[animState] || animState);
+    document.getElementById('anim-state').textContent = label;
+
+    //── NPC proximity / talk prompt ─────────────────────────
+    nearestNpcIdx  = -1;
+    nearestNpcDist = Infinity;
+    for (let i = 0; i < NPC_DEFS.length; i++) {
+      const npc = npcs[i];
+      if (!npc) continue;
+      const dx = charPos.x - npc.wx;
+      const dz = charPos.z - npc.wz;
+      const dist = Math.sqrt(dx * dx + dz * dz);
+      if (dist < nearestNpcDist) { nearestNpcDist = dist; nearestNpcIdx = i; }
+    }
+    if (!dlgActive) {
+      const inRange = nearestNpcIdx >= 0 && nearestNpcDist < TALK_RANGE;
+      if (inRange) {
+        const grp = NPC_GROUPS[nearestNpcIdx];
+        const alreadyDone = grp && G.state.talkedTo[grp.id];
+        if (grp && !alreadyDone) {
+          bubbleNameEl.textContent = grp.bubbleName;
+          npcBubble.style.display = 'block';
+        } else {
+          npcBubble.style.display = 'none';
+        }
+      } else {
+        npcBubble.style.display = 'none';
+      }
+    }
+  }
+
+  //── Camera follow ─────────────────────────────────────────
+  {
+    const target = new THREE.Vector3(charPos.x, charY + 1.0, charPos.z);
+    const sinY = Math.sin(camYaw), cosY = Math.cos(camYaw);
+    const cosP = Math.cos(camPitch), sinP = Math.sin(camPitch);
+    const offset = new THREE.Vector3(
+      sinY * camDist * cosP,
+      camDist * sinP + 0.8,
+      cosY * camDist * cosP
+    );
+    camera.position.lerp(target.clone().add(offset), 0.15);
+    camera.lookAt(target);
+  }
+
+  //── NPCs — static, no animation ────────────────────────
+  npcs.forEach(npc => {
+    if (!npc) return;
+    npc.scene.rotation.y = npc.facingY;
+    npc.scene.position.y = 0;
+  });
+
+  //── Animate balloons (gentle bob) ────────────────────────
+  balloons.forEach(b => {
+    b.group.position.y = b.baseY + Math.sin(animTime * b.speed + b.phase) * 0.25;
+    b.group.rotation.y = Math.sin(animTime * 0.3 + b.phase) * 0.08;
+  });
+
+  //── Animate clouds ───────────────────────────────────────
+  clouds.forEach((c, i) => {
+    c.position.x += dt * 1.5 * (i % 2 === 0 ? 1 : -1);
+    if (c.position.x >  120) c.position.x = -120;
+    if (c.position.x < -120) c.position.x =  120;
+  });
+
+  composer.render();
+}
+
+animate();
+
+//──────────────────────────────────────────────────────────────────
+// RESIZE
+//──────────────────────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
