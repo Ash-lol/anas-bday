@@ -445,7 +445,7 @@
 <div id="dialogue-box">
   <button id="dlg-close-btn" title="Close (Q)">×</button>
   <div class="speaker" id="dlg-speaker"></div>
-  <div class="line" id="dlg-line"></div>
+  <div class="line" id="dlg-line" style="cursor:pointer" onclick="window._dlgTapAdvance && window._dlgTapAdvance()"></div>
   <div id="dlg-choices"></div>
   <div id="dlg-password-wrap">
     <input type="text" id="dlg-pw-input" placeholder="Type your answer..." autocomplete="off">
@@ -1694,7 +1694,7 @@ let dlgStep = 0;
 // Typewriter state
 let dlgStreaming = false;
 let dlgStreamInterval = null;
-const DLG_STREAM_MS = 24; // ms per character
+const DLG_STREAM_MS = 15; // ms per character (faster on mobile)
 
 function _dlgStreamText(text, onDone) {
   clearInterval(dlgStreamInterval);
