@@ -240,42 +240,70 @@
       100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
     }
 
-    /* ── Mobile Virtual Joystick ────────────────────────── */
+    /* ── Mobile / Tablet Virtual Controls ────────────── */
+    /* Left half: movement joystick zone (invisible, full coverage) */
     #mobile-controls {
-      display: none; position: fixed; z-index: 35;
-      bottom: 28px; left: 28px;
-    }
-    #joystick-zone {
-      width: 120px; height: 120px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.08);
-      border: 2px solid rgba(255,255,255,0.15);
-      position: relative;
+      display: none; position: fixed; z-index: 34;
+      top: 0; left: 0; width: 50vw; height: 100vh;
       touch-action: none;
     }
+    /* Visual joystick indicator */
+    #joystick-zone {
+      display: none; position: fixed; bottom: 100px; left: 40px; z-index: 35;
+      width: 130px; height: 130px; border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: 2px solid rgba(255,255,255,0.15);
+      pointer-events: none;
+    }
     #joystick-knob {
-      width: 44px; height: 44px;
-      border-radius: 50%;
-      background: rgba(244,114,182,0.4);
-      border: 2px solid rgba(244,114,182,0.6);
+      width: 52px; height: 52px; border-radius: 50%;
+      background: rgba(244,114,182,0.35);
+      border: 2.5px solid rgba(244,114,182,0.55);
       position: absolute; top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       pointer-events: none;
     }
+    /* Right half: camera touch zone (invisible, full coverage) */
+    #cam-touch-zone {
+      display: none; position: fixed; z-index: 34;
+      top: 0; right: 0; width: 50vw; height: 100vh;
+      touch-action: none;
+    }
+    /* Action buttons (on top of camera zone) */
     #mobile-btns {
-      display: none; position: fixed; z-index: 35;
-      bottom: 28px; right: 28px;
-      gap: 10px; flex-direction: column; align-items: flex-end;
+      display: none; position: fixed; z-index: 36;
+      bottom: 100px; right: 50px;
+      gap: 14px; flex-direction: column; align-items: flex-end;
+      pointer-events: none;
     }
     .m-btn {
-      width: 52px; height: 52px; border-radius: 50%;
-      background: rgba(255,255,255,0.1);
-      border: 2px solid rgba(255,255,255,0.2);
-      color: #fff; font-size: 18px;
+      width: 62px; height: 62px; border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: 2px solid rgba(255,255,255,0.18);
+      color: #fff; font-size: 22px;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; touch-action: manipulation;
+      pointer-events: auto;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
-    .m-btn:active { background: rgba(244,114,182,0.3); }
+    .m-btn:active { background: rgba(244,114,182,0.35); }
+    .m-btn.active { background: rgba(244,114,182,0.4); border-color: rgba(244,114,182,0.6); }
+
+    /* Tablet-specific sizing */
+    @media (min-width: 600px) and (pointer: coarse) {
+      #joystick-zone { width: 160px; height: 160px; bottom: 120px; left: 60px; }
+      #joystick-knob { width: 68px; height: 68px; }
+      .m-btn { width: 72px; height: 72px; font-size: 26px; }
+      #mobile-btns { bottom: 120px; right: 70px; gap: 18px; }
+    }
+    /* Small phone tweaks */
+    @media (max-width: 420px) {
+      #joystick-zone { width: 100px; height: 100px; bottom: 80px; left: 30px; }
+      #joystick-knob { width: 40px; height: 40px; }
+      .m-btn { width: 52px; height: 52px; font-size: 18px; }
+      #mobile-btns { bottom: 80px; right: 30px; gap: 10px; }
+    }
 
     /* ── Progress Tracker (top-left) ────────────────────── */
     #progress-tracker {
@@ -401,10 +429,13 @@
 </div>
 
 <!-- ═══ Mobile Controls ═══ -->
-<div id="mobile-controls">
-  <div id="joystick-zone"><div id="joystick-knob"></div></div>
-</div>
+<!-- Left half: touch zone for movement (invisible, full coverage) -->
+<div id="mobile-controls"></div>
+<!-- Visual joystick indicator -->
+<div id="joystick-zone"><div id="joystick-knob"></div></div>
+<!-- Right half: camera touch zone (invisible, full coverage) -->
 <div id="cam-touch-zone"></div>
+<!-- Action buttons (on top of camera zone) -->
 <div id="mobile-btns">
   <div class="m-btn" id="m-jump">⬆</div>
   <div class="m-btn" id="m-run">🏃</div>
@@ -2100,21 +2131,27 @@ let joyVX = 0, joyVZ = 0, mobileRunning = false;
 
 if (isMobile) {
   document.getElementById('mobile-controls').style.display = 'block';
+  document.getElementById('joystick-zone').style.display = 'block';
   document.getElementById('mobile-btns').style.display = 'flex';
   document.getElementById('cam-touch-zone').style.display = 'block';
-  // Hide keyboard controls panel on mobile/tablet
   document.getElementById('controls').style.display = 'none !important';
 
-  const jZone = document.getElementById('joystick-zone');
+  // Left half: full-screen joystick zone
+  const jZone = document.getElementById('mobile-controls');
   const jKnob = document.getElementById('joystick-knob');
+  const jVisual = document.getElementById('joystick-zone');
   let jActive = false, jCX = 0, jCY = 0;
 
   jZone.addEventListener('touchstart', e => {
     e.preventDefault();
     jActive = true;
-    const r = jZone.getBoundingClientRect();
-    jCX = r.left + r.width / 2;
-    jCY = r.top + r.height / 2;
+    const t = e.touches[0];
+    jCX = t.clientX;
+    jCY = t.clientY;
+    // Move visual indicator to touch point
+    const vr = jVisual.getBoundingClientRect();
+    jVisual.style.left = (jCX - vr.width / 2) + 'px';
+    jVisual.style.bottom = (window.innerHeight - jCY - vr.height / 2) + 'px';
   }, { passive: false });
 
   jZone.addEventListener('touchmove', e => {
@@ -2122,11 +2159,10 @@ if (isMobile) {
     e.preventDefault();
     const t = e.touches[0];
     let dx = t.clientX - jCX, dy = t.clientY - jCY;
-    const maxR = 50;
+    const maxR = 65;
     const dist = Math.sqrt(dx * dx + dy * dy);
     if (dist > maxR) { dx = dx / dist * maxR; dy = dy / dist * maxR; }
     jKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-    // Normalize to -1..1
     joyVX = dx / maxR;
     joyVZ = dy / maxR;
   }, { passive: false });
