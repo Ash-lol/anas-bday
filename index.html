@@ -1137,39 +1137,6 @@ setProgress(70, 'Party decorations\u2026');
 // PARTY DECORATIONS  🎉🎈🎂
 //──────────────────────────────────────────────────────────────────
 
-// ── Birthday Banner across courtyard gate ──
-{
-  const bannerW = GHW * 2 + 1.5, bannerH = 1.2;
-  const banCanvas = document.createElement('canvas');
-  banCanvas.width = 512; banCanvas.height = 128;
-  const bCtx = banCanvas.getContext('2d');
-  // Gradient background
-  const grad = bCtx.createLinearGradient(0, 0, 512, 0);
-  grad.addColorStop(0, '#f472b6'); grad.addColorStop(0.5, '#fb923c');
-  grad.addColorStop(1, '#facc15');
-  bCtx.fillStyle = grad;
-  bCtx.beginPath();
-  if (bCtx.roundRect) { bCtx.roundRect(0, 0, 512, 128, 18); } else { bCtx.rect(0, 0, 512, 128); }
-  bCtx.fill();
-  bCtx.fillStyle = '#fff';
-  bCtx.font = 'bold 42px Arial, sans-serif';
-  bCtx.textAlign = 'center'; bCtx.textBaseline = 'middle';
-  bCtx.fillText('🎉 Happy Birthday Anastasia! 🎂', 256, 64);
-  const banTex = new THREE.CanvasTexture(banCanvas);
-  const banMat = new THREE.MeshBasicMaterial({ map: banTex, transparent: true, side: THREE.DoubleSide });
-  const banner = new THREE.Mesh(new THREE.PlaneGeometry(bannerW, bannerH), banMat);
-  banner.position.set(CX, CWH + 1.0, cyFZ);
-  scene.add(banner);
-
-  // Ribbon strings hanging from banner ends
-  const ribMat = new THREE.MeshBasicMaterial({ color: 0xf472b6 });
-  [-bannerW / 2 + 0.15, bannerW / 2 - 0.15].forEach(offX => {
-    const rib = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.0, 4), ribMat);
-    rib.position.set(CX + offX, CWH + 0.5, cyFZ);
-    scene.add(rib);
-  });
-}
-
 // ── Floating balloons ──
 const balloons = [];
 const balloonColors = [0xf472b6, 0xfb923c, 0xfacc15, 0x34d399, 0x60a5fa, 0xc084fc, 0xfb7185, 0xff6b6b];
