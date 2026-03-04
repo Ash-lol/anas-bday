@@ -1694,7 +1694,7 @@ let dlgStep = 0;
 // Typewriter state
 let dlgStreaming = false;
 let dlgStreamInterval = null;
-const DLG_STREAM_MS = 15; // ms per character (faster on mobile)
+const DLG_STREAM_MS = 7; // ms per character (faster on mobile)
 
 function _dlgStreamText(text, onDone) {
   clearInterval(dlgStreamInterval);
