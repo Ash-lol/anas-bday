@@ -1694,7 +1694,7 @@ let dlgStep = 0;
 // Typewriter state
 let dlgStreaming = false;
 let dlgStreamInterval = null;
-const DLG_STREAM_MS = 7; // ms per character (faster on mobile)
+const DLG_STREAM_MS = 4; // ms per character (faster on mobile)
 
 function _dlgStreamText(text, onDone) {
   clearInterval(dlgStreamInterval);
@@ -1738,6 +1738,11 @@ const dialogueBox  = document.getElementById('dialogue-box');
 document.getElementById('dlg-close-btn').addEventListener('click', () => cancelConversation());
 const npcBubble    = document.getElementById('npc-bubble');
 const bubbleNameEl = document.getElementById('bubble-name');
+// Add touch support for mobile bubble interaction
+npcBubble.addEventListener('touchend', e => {
+  e.preventDefault();
+  if (window._bubbleClick) window._bubbleClick();
+}, { passive: false });
 
 function startConversation(npcIdx) {
   const group = NPC_GROUPS[npcIdx];
@@ -2651,8 +2656,7 @@ function animate() {
       const inRange = nearestNpcIdx >= 0 && nearestNpcDist < TALK_RANGE;
       if (inRange) {
         const grp = NPC_GROUPS[nearestNpcIdx];
-        const alreadyDone = grp && G.state.talkedTo[grp.id];
-        if (grp && !alreadyDone) {
+        if (grp) {
           bubbleNameEl.textContent = grp.bubbleName;
           npcBubble.style.display = 'block';
         } else {
